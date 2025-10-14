@@ -1,0 +1,83 @@
+export interface ModuleContent {
+  id: number;
+  key: string;
+  title: string;
+  short?: string;
+  body: string;
+  links?: { label: string; url: string }[];
+  accent?: string;
+  hidden?: boolean;
+  // Whether clicking this ring is allowed to open the info disc (bullseye always true in logic)
+  openDisc?: boolean; // default false for rings > 0; can be toggled via runtime config
+}
+
+export const MODULES: ModuleContent[] = [
+  { id: 0, key: 'about', title: 'Bullseye Hit!', body: `
+  <div class="bio bio-pre">
+<pre>Hi, I'm Bojun Chai.
+
+A person who still carries a few ideals,
+who is not so curious about the world but has clear goals.
+
+I play a little music, enjoy bands and creation. I host a little‑known podcast, meaningful sounds energize me.
+
+Software engineering is how I make a living. Along this path, I spent time at the world's largest consumer electronics company and then joined one of the world's major software companies.
+
+Welcome.
+
+</pre>
+    <div class="social-row" aria-label="Social links">
+      <a class="s-icon li" href="https://www.linkedin.com/in/bojun-chai-8b787b375/" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn" data-name="LinkedIn"></a>
+      <a class="s-icon gh" href="https://github.com/BooojChai" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub" data-name="GitHub"></a>
+      <a class="s-icon pc" href="https://www.ximalaya.com/album/85667561" target="_blank" rel="noopener" title="Podcast" aria-label="Podcast" data-name="Podcast"></a>
+      <a class="s-icon ms" href="https://music.163.com/#/artist?id=34957915" target="_blank" rel="noopener" title="Music" aria-label="Music" data-name="Music"></a>
+      <a class="s-icon bd" href="https://space.bilibili.com/89096037" target="_blank" rel="noopener" title="Band" aria-label="Band" data-name="Band"></a>
+    </div>
+    </div>
+  `, links: [] },
+  { id: 1, key: 'career', title: '职业经历 · Career', body: '时间线：公司 / 角色 / 影响力（占位）。', links: [] },
+  { id: 2, key: 'projects', title: '项目作品 · Projects', body: '展示代表性项目与仓库链接。', links: [{label:'GitHub', url:'https://github.com/'}] },
+  { id: 3, key: 'tech', title: '技术栈 · Tech Stack', body: '精通 / 熟悉 / 了解：以图标或标签形式（占位）。' },
+  { id: 4, key: 'blog', title: '博客 · Blog', body: '最近文章列表或外部博客入口。', links:[{label:'Blog', url:'#'}] },
+  { id: 5, key: 'photo', title: '摄影 · Photography', body: '精选照片或社交平台链接。', links:[{label:'Instagram', url:'#'}] },
+  { id: 6, key: 'interests', title: '兴趣 · Interests', body: '阅读 / 跑步 / 音乐 / 旅行 等（占位）。' },
+  { id: 7, key: 'talks', title: '演讲与活动 · Talks', body: '演讲、Slides、视频链接（占位）。' },
+  { id: 8, key: 'resume', title: '简历 · Resume', body: '下载 PDF 或在线简历链接。', links:[{label:'Download PDF', url:'#'}] },
+  { id: 9, key: 'contact', title: '联系 · Contact', body: 'Email / 微信 / Twitter / LinkedIn（占位）。' },
+  { id: 10, key: 'easter', title: '彩蛋 · Easter Egg', body: '隐藏趣味互动：小游戏 / 随机语录 / 彩蛋指令。', hidden:true }
+];
+
+// Initialize per-ring disc-open config (excluding bullseye which is always allowed in code):
+// You can toggle at runtime via: window.setRingOpen(3,true) and it will persist in localStorage.
+const RING_OPEN_KEY = 'ring-open-config-v1';
+type RingOpenMap = { [ring:number]: boolean };
+function loadRingOpen(): RingOpenMap {
+  try {
+    const raw = localStorage.getItem(RING_OPEN_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch { /* ignore */ }
+  return {};
+}
+function saveRingOpen(map:RingOpenMap) {
+  try { localStorage.setItem(RING_OPEN_KEY, JSON.stringify(map)); } catch { /* ignore */ }
+}
+const ringOpenMap = loadRingOpen();
+// Apply stored flags into MODULES (skip id 0)
+MODULES.forEach(m => { if (m.id>0 && ringOpenMap[m.id]) m.openDisc = true; });
+
+// Expose helpers for console usage
+declare global { interface Window { setRingOpen?: (ring:number, open:boolean)=>void; listRingOpen?: ()=>void; } }
+if (typeof window !== 'undefined') {
+  window.setRingOpen = (ring:number, open:boolean) => {
+    if (ring<=0) { console.warn('Bullseye is always open by default; no need to set.'); }
+    ringOpenMap[ring] = open;
+    if (!open) delete ringOpenMap[ring];
+    saveRingOpen(ringOpenMap);
+    const mod = MODULES.find(m=>m.id===ring);
+    if (mod) mod.openDisc = open;
+    console.log('[RingOpen] ring', ring, '=>', open);
+  };
+  window.listRingOpen = () => {
+    console.table(MODULES.filter(m=>m.id>0).map(m=> ({ ring:m.id, open: !!m.openDisc, key:m.key, title:m.title })));
+  };
+}

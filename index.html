@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bojun Chai - Focus · Aim · Create</title>
+  <meta name="description" content="个人主页 · 人生选择与专注 · Dartboard Navigation" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <!-- Favicon extracted to file to avoid build URI parsing issues -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <style>html,body{margin:0;padding:0;background:#0d0f13;color:#e9ecf2;font-family:Inter,system-ui,sans-serif;}
+  body.loading{overflow:hidden}
+  </style>
+</head>
+<body class="loading intro-phase">
+  <canvas id="bg" aria-hidden="true"></canvas>
+  <div id="app"></div>
+  <div id="intro-text" aria-hidden="true">🎯 Focus. Aim. Create.<span class="cursor">|</span>
+    <div id="intro-sub" aria-hidden="true">Here's Bojun</div>
+  </div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
