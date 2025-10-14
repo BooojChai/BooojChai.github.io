@@ -31,7 +31,8 @@ body.revealed #app { opacity:1; transform:translateY(28px) scale(1); transition:
 body.revealed { cursor:default; }
 /* Custom cursor container (interactive disc) */
 .custom-cursor { position:fixed; left:0; top:0; width:48px; height:48px; margin:-24px 0 0 -24px; pointer-events:none; z-index:4000; opacity:0; transition:opacity .4s ease; }
-body.revealed .custom-cursor { opacity:1; }
+/* 显示自定义光标仅在真正激活时，避免在左上角(0,0)闪现 */
+body.custom-cursor-active .custom-cursor { opacity:1; }
 .custom-cursor .cc-outer { position:absolute; inset:0; border-radius:50%; border:2px solid rgba(255,255,255,0.18); box-shadow:0 0 0 1px rgba(255,255,255,0.05), 0 0 14px -2px rgba(62,166,255,0.25); backdrop-filter:blur(2px); transition:transform .28s cubic-bezier(.55,.1,.25,1), border-color .3s ease, box-shadow .4s ease, background .4s ease; }
 .custom-cursor .cc-inner { position:absolute; left:50%; top:50%; width:8px; height:8px; margin:-4px 0 0 -4px; border-radius:50%; background:radial-gradient(circle at 30% 30%, #fff, #89caff 70%); box-shadow:0 0 4px rgba(62,166,255,0.6); transition:transform .25s cubic-bezier(.55,.1,.25,1), background .35s ease, box-shadow .35s ease; }
 .custom-cursor .cc-dart.top-view { position:absolute; left:50%; top:50%; width:54px; height:54px; transform:translate(-50%, -50%) scale(1); transform-origin:50% 50%; pointer-events:none; filter:drop-shadow(0 0 4px rgba(0,0,0,0.55)); transition:filter .35s ease, transform .28s cubic-bezier(.55,.1,.25,1); }
