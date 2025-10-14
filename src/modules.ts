@@ -21,7 +21,7 @@ who is not so curious about the world but has clear dream.
 
 I play a little music, enjoy bands and creation. I host a little‑known podcast, meaningful sounds energize me.
 
-Software engineering is how I make a living. Along this path, I spent time at the world's largest consumer electronics company and then joined one of the world's major software companies.
+Software engineering is what I excel at and what I rely on for a living. Along this path, I have worked for the world's largest consumer electronics and computer software companies.
 
 Welcome.
 
