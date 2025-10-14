@@ -114,9 +114,13 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
   document.documentElement.style.setProperty('--disc-accent', accent);
   const discEl = infoDisc.querySelector('.disc') as HTMLElement | null;
   if (discEl) {
+    discEl.classList.add('animating');
     discEl.setAttribute('data-pop','in');
-    // 移除旧动画后再次触发（如果连续打开同一环）
-    discEl.addEventListener('animationend', () => discEl.removeAttribute('data-pop'), { once:true });
+    // 动画结束后清理标记，避免再次打开时重复抖动
+    discEl.addEventListener('animationend', () => {
+      discEl.removeAttribute('data-pop');
+      discEl.classList.remove('animating');
+    }, { once:true });
   }
   // Hide custom dart cursor while disc is open
   document.body.classList.remove('custom-cursor-active');
@@ -556,20 +560,32 @@ function chargeLoop() {
   }
 }
 
+// --- Board-relative coordinate helpers (normalize to wrapper rect) ---
+function normalizeToBoard(x:number, y:number) {
+  const rect = wrapper.getBoundingClientRect();
+  return { nx: (x - rect.left) / rect.width, ny: (y - rect.top) / rect.height };
+}
+function absoluteFromNormalized(nx:number, ny:number) {
+  const rect = wrapper.getBoundingClientRect();
+  return { x: nx * rect.width, y: ny * rect.height };
+}
+
 function spawnImpactRipple(x:number, y:number, pwr:number) {
+  const { nx, ny } = normalizeToBoard(x,y);
+  if (nx < 0 || nx > 1 || ny < 0 || ny > 1) return; // outside board: ignore
   const ripple = document.createElement('div');
   ripple.className = 'impact-ripple-top';
   const scale = 2 + pwr * 2.6; // max ripple size based on power
-  ripple.style.left = x + 'px';
-  ripple.style.top = y + 'px';
+  const abs = absoluteFromNormalized(nx, ny);
+  ripple.style.left = abs.x + 'px';
+  ripple.style.top = abs.y + 'px';
   ripple.style.setProperty('--final-scale', scale.toFixed(2));
-  // Inherit latest active ring tone if available
   const activeRing = document.querySelector('svg.dartboard .ring[data-active="true"]');
   if (activeRing) {
     const tone = (activeRing as HTMLElement).getAttribute('data-tone');
     if (tone) ripple.dataset.tone = tone;
   }
-  document.body.appendChild(ripple);
+  wrapper.appendChild(ripple);
   setTimeout(()=> ripple.remove(), 600);
 }
 
@@ -577,18 +593,30 @@ function spawnImpactRipple(x:number, y:number, pwr:number) {
 
 // Persistent hit markers (capped)
 const HIT_MARKER_LIMIT = 26;
-let hitMarkers: HTMLElement[] = [];
+let hitMarkers: { el:HTMLElement; nx:number; ny:number }[] = [];
+function repositionMarkers() {
+  const rect = wrapper.getBoundingClientRect();
+  hitMarkers.forEach(m => {
+    const abs = absoluteFromNormalized(m.nx, m.ny);
+    m.el.style.left = abs.x + 'px';
+    m.el.style.top = abs.y + 'px';
+  });
+}
+window.addEventListener('resize', repositionMarkers);
 function spawnHitMarker(x:number, y:number) {
+  const { nx, ny } = normalizeToBoard(x,y);
+  if (nx < 0 || nx > 1 || ny < 0 || ny > 1) return;
   const mk = document.createElement('div');
   mk.className = 'hit-marker';
-  mk.style.left = x + 'px';
-  mk.style.top = y + 'px';
-  document.body.appendChild(mk);
-  requestAnimationFrame(()=> mk.dataset.ready = '1'); // fade-in trigger
-  hitMarkers.push(mk);
+  const abs = absoluteFromNormalized(nx, ny);
+  mk.style.left = abs.x + 'px';
+  mk.style.top = abs.y + 'px';
+  wrapper.appendChild(mk);
+  requestAnimationFrame(()=> mk.dataset.ready = '1');
+  hitMarkers.push({ el: mk, nx, ny });
   if (hitMarkers.length > HIT_MARKER_LIMIT) {
     const old = hitMarkers.shift();
-    if (old) old.remove();
+    if (old) old.el.remove();
   }
 }
 

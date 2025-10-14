@@ -17,7 +17,7 @@ export const MODULES: ModuleContent[] = [
 <pre>Hi, I'm Bojun Chai.
 
 A person who still carries a few ideals,
-who is not so curious about the world but has clear goals.
+who is not so curious about the world but has clear dream.
 
 I play a little music, enjoy bands and creation. I host a little‑known podcast, meaningful sounds energize me.
 
