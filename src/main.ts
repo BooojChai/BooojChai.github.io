@@ -57,7 +57,8 @@ function anchorIntroAboveBoard() {
   // We want the text to end ABOVE the board with a larger gap (previously +40). Increase gap to 120.
   const GAP = 160; // increased gap to push title higher above board
   // Target Y position for text baseline relative to viewport
-  const targetY = Math.max(24, boardTop - GAP);
+  const minTop = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--intro-min-top')) || 60;
+  const targetY = Math.max(minTop, boardTop - GAP);
   // rise offset = distance we need to move from original center to targetY
   const rise = Math.min(centerY - targetY, 400); // allow a bit more max lift for larger screens
   document.documentElement.style.setProperty('--rise-offset', rise + 'px');
@@ -93,25 +94,49 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
   if (!mod) return;
   const h2 = infoDisc.querySelector('h2')!;
   const body = infoDisc.querySelector('.body')!;
-  h2.textContent = mod.title;
-  h2.setAttribute('data-title', mod.title);
-  // If Bullseye Hit! separate colors: wrap words
-  if (mod.title === 'Bullseye Hit!') {
-    h2.innerHTML = '<span class="t-bull">Bullseye</span> <span class="t-hit">Hit!</span>';
+  if (anchorRing === 0) {
+    // 中心（蓝色）圆盘保留内容
+    h2.textContent = mod.title;
+    h2.setAttribute('data-title', mod.title);
+    if (mod.title === 'Bullseye Hit!') {
+      h2.innerHTML = '<span class="t-bull">Bullseye</span> <span class="t-hit">Hit!</span>';
+    }
+    body.innerHTML = `${mod.body}${mod.links?'<ul class="links">'+mod.links.map(l=>`<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join('')+'</ul>':''}`;
+    infoDisc.classList.remove('empty');
+  } else {
+    // 其它环全部清空文字
+    h2.textContent = '';
+    h2.removeAttribute('data-title');
+    body.innerHTML = '';
+    infoDisc.classList.add('empty');
   }
-  body.innerHTML = `${mod.body}${mod.links?'<ul class="links">'+mod.links.map(l=>`<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join('')+'</ul>':''}`;
   // Add body class for styling and mark visible
   adjustDiscShift();
   document.body.classList.add('disc-open');
   infoDisc.dataset.visible = 'true';
-  // 动态强调色：根据 ring tone 设置 CSS 变量
-  const ringEl = document.querySelector(`svg.dartboard .ring[data-ring="${anchorRing}"]`) as HTMLElement | null;
-  let tone = ringEl?.dataset.tone;
-  let accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-  if (tone === 'red') accent = '#ff4d5d';
-  else if (tone === 'light') accent = '#58b2ff';
-  else if (tone === 'dark') accent = '#ffb366';
-  document.documentElement.style.setProperty('--disc-accent', accent);
+  // 动态强调色：仅基于 ring 序号映射行星主题 (不改变环本身颜色)
+  const ringPlanetAccent: Record<number,string> = {
+    0: '#58b2ff', // Earth (center disc)
+    1: '#e3c15d', // Venus
+    2: '#d49b61', // Jupiter
+    3: '#c3ccd4', // Mercury
+    4: '#e36846', // Mars
+    5: '#e1d4b2', // Saturn
+    6: '#f0f3f5'  // Moon
+  };
+  const accent = ringPlanetAccent[anchorRing] || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  const discElForAccent = infoDisc.querySelector('.disc') as HTMLElement | null;
+  if (discElForAccent) discElForAccent.style.setProperty('--disc-accent', accent);
+  // Planet class mapping for full background theme
+  const ringPlanetClass: Record<number,string> = {
+    0:'earth',1:'venus',2:'jupiter',3:'mercury',4:'mars',5:'saturn',6:'moon'
+  };
+  if (discElForAccent) {
+    // remove previous planet-* classes
+    discElForAccent.className = discElForAccent.className.replace(/\bplanet-[a-z]+\b/g,'').trim();
+    const planet = ringPlanetClass[anchorRing];
+    if (planet) discElForAccent.classList.add(`planet-${planet}`);
+  }
   const discEl = infoDisc.querySelector('.disc') as HTMLElement | null;
   if (discEl) {
     discEl.classList.add('animating');
@@ -121,6 +146,8 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
       discEl.removeAttribute('data-pop');
       discEl.classList.remove('animating');
     }, { once:true });
+    // 启用动态光照：监听 pointermove 更新 CSS 变量 --lx/--ly
+    enableDiscLighting(discEl);
   }
   // Hide custom dart cursor while disc is open
   document.body.classList.remove('custom-cursor-active');
@@ -142,8 +169,11 @@ function hideCard() {
         discEl.classList.remove('closing');
         delete infoDisc.dataset.visible;
         document.body.classList.remove('disc-open');
-        document.documentElement.style.removeProperty('--disc-accent');
+        const discEl2 = infoDisc.querySelector('.disc') as HTMLElement | null;
+        if (discEl2) discEl2.style.removeProperty('--disc-accent');
+  if (discEl2) discEl2.className = discEl2.className.replace(/\bplanet-[a-z]+\b/g,'').trim();
         discEl.removeEventListener('transitionend', onEnd as any);
+        disableDiscLighting(discEl);
       }
     };
     discEl.addEventListener('transitionend', onEnd as any);
@@ -153,8 +183,144 @@ function hideCard() {
   } else {
     delete infoDisc.dataset.visible;
     document.body.classList.remove('disc-open');
-    document.documentElement.style.removeProperty('--disc-accent');
+    const discEl2 = infoDisc.querySelector('.disc') as HTMLElement | null;
+    if (discEl2) discEl2.style.removeProperty('--disc-accent');
+    if (discEl2) discEl2.className = discEl2.className.replace(/\bplanet-[a-z]+\b/g,'').trim();
+    if (discEl2) disableDiscLighting(discEl2);
   }
+}
+
+// -------- Dynamic Disc Lighting (pointer-based highlight) --------
+let discLightHandler: ((e:PointerEvent)=>void) | null = null;
+function enableDiscLighting(disc: HTMLElement) {
+  disableDiscLighting(disc); // safety
+  const rect = () => disc.getBoundingClientRect();
+  discLightHandler = (e:PointerEvent) => {
+    const r = rect();
+    const x = (e.clientX - r.left) / r.width; // 0..1
+    const y = (e.clientY - r.top) / r.height;
+    // Clamp & ease toward edge to avoid harsh shift when出界
+    const clampedX = Math.min(1, Math.max(0, x));
+    const clampedY = Math.min(1, Math.max(0, y));
+    // Ease to slightly inward to keep highlight never exactly on rim
+    const inward = 0.06;
+    const lx = inward + (1 - inward*2) * clampedX;
+    const ly = inward + (1 - inward*2) * clampedY;
+    disc.style.setProperty('--lx', (lx*100).toFixed(2)+'%');
+    disc.style.setProperty('--ly', (ly*100).toFixed(2)+'%');
+  };
+  window.addEventListener('pointermove', discLightHandler, { passive:true });
+  // 初始随机放置在左上或右上，避免正中显得平
+  const side = Math.random() < 0.5 ? 'left' : 'right';
+  const baseX = side === 'left' ? 0.30 : 0.70; // 更外侧 30% 或 70%
+  const baseY = 0.26 + Math.random()*0.04;    // 更高 26%~30%（中心上方，目标 ~28%）
+  disc.style.setProperty('--lx', (baseX*100).toFixed(2)+'%');
+  disc.style.setProperty('--ly', (baseY*100).toFixed(2)+'%');
+  // 同步惯性起点（若 parallax 系统存在）
+  if (typeof (discInertial) !== 'undefined') {
+    discInertial.x = discInertial.tx = 0.5; // 本体仍以中心为基准移动
+  }
+  if (typeof (specularState) !== 'undefined') {
+    specularState.x = specularState.tx = baseX;
+    specularState.y = specularState.ty = baseY;
+    specularState.lastMove = performance.now();
+    specularState.idle = false;
+  }
+}
+function disableDiscLighting(disc: HTMLElement) {
+  if (discLightHandler) {
+    window.removeEventListener('pointermove', discLightHandler as any);
+    discLightHandler = null;
+  }
+  disc.style.removeProperty('--lx');
+  disc.style.removeProperty('--ly');
+}
+
+// ----- Parallax + Active Specular Highlight (Inertial & Idle Drift) -----
+let parallaxRAF: number | null = null;
+let parallaxDisc: HTMLElement | null = null;
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Position state for disc body
+const discInertial = { x:0.5, y:0.5, vx:0, vy:0, tx:0.5, ty:0.5 };
+// Specular (镜面高光) state
+const specularState = { x:0.5, y:0.5, vx:0, vy:0, tx:0.5, ty:0.5, lastMove: performance.now(), idle:false, phase: Math.random()*Math.PI*2 };
+function startDiscParallax(disc: HTMLElement) {
+  if (prefersReduced) return;
+  parallaxDisc = disc;
+  const BODY_STRENGTH = 6; // px
+  const loop = () => {
+    // Disc inertial easing
+    discInertial.vx += (discInertial.tx - discInertial.x) * 0.12;
+    discInertial.vy += (discInertial.ty - discInertial.y) * 0.12;
+    discInertial.vx *= 0.78; discInertial.vy *= 0.78;
+    discInertial.x += discInertial.vx; discInertial.y += discInertial.vy;
+    // Specular idle drift
+    const now = performance.now();
+    const IDLE_AFTER = 800;
+    const wasIdle = specularState.idle;
+    specularState.idle = (now - specularState.lastMove) > IDLE_AFTER;
+    if (specularState.idle) {
+      specularState.phase += 0.005; // very slow
+      const amp = 0.045;
+      specularState.tx = 0.5 + Math.cos(specularState.phase)*amp;
+      specularState.ty = 0.5 + Math.sin(specularState.phase*1.18)*amp*0.75;
+    }
+    // Specular inertial chase (slightly snappier)
+    specularState.vx += (specularState.tx - specularState.x) * 0.18;
+    specularState.vy += (specularState.ty - specularState.y) * 0.18;
+    specularState.vx *= 0.80; specularState.vy *= 0.80;
+    specularState.x += specularState.vx; specularState.y += specularState.vy;
+    if (parallaxDisc) {
+      const dx = (discInertial.x - 0.5) * -BODY_STRENGTH;
+      const dy = (discInertial.y - 0.5) * -BODY_STRENGTH;
+      parallaxDisc.style.setProperty('--parallax-x', dx.toFixed(3)+'px');
+      parallaxDisc.style.setProperty('--parallax-y', dy.toFixed(3)+'px');
+      parallaxDisc.style.transform = `translateY(var(--disc-shift,0)) translate(${dx.toFixed(3)}px, ${dy.toFixed(3)}px) scale(.74)`;
+      const spec = parallaxDisc.querySelector('.specular') as HTMLElement | null;
+      if (spec) {
+        // Edge fade
+        const edgeDist = Math.max(Math.abs(discInertial.x-0.5), Math.abs(discInertial.y-0.5));
+        const fade = 1 - edgeDist*1.4;
+        spec.classList.toggle('dim', fade < 0.55);
+        spec.style.opacity = Math.max(0.4, Math.min(0.9, fade)).toFixed(3);
+        spec.style.setProperty('--slx', (specularState.x*100).toFixed(2)+'%');
+        spec.style.setProperty('--sly', (specularState.y*100).toFixed(2)+'%');
+        if (specularState.idle) {
+          const pulse = 1 + Math.sin(specularState.phase*2)*0.05;
+          spec.style.setProperty('--specular-gain', pulse.toFixed(3));
+        } else if (wasIdle) {
+          spec.style.setProperty('--specular-gain', '1');
+        }
+      }
+    }
+    parallaxRAF = requestAnimationFrame(loop);
+  };
+  if (!parallaxRAF) parallaxRAF = requestAnimationFrame(loop);
+  window.addEventListener('pointermove', updateParallaxTarget, { passive:true });
+}
+function stopDiscParallax() {
+  if (parallaxRAF) { cancelAnimationFrame(parallaxRAF); parallaxRAF = null; }
+  window.removeEventListener('pointermove', updateParallaxTarget as any);
+  if (parallaxDisc) {
+    parallaxDisc.style.removeProperty('--parallax-x');
+    parallaxDisc.style.removeProperty('--parallax-y');
+    parallaxDisc.style.transform = 'translateY(var(--disc-shift,0)) scale(.74)';
+  }
+  parallaxDisc = null;
+  discInertial.x = discInertial.y = 0.5; discInertial.tx = discInertial.ty = 0.5; discInertial.vx = discInertial.vy = 0;
+  specularState.x = specularState.y = 0.5; specularState.tx = specularState.ty = 0.5; specularState.vx = specularState.vy = 0; specularState.idle=false;
+}
+function updateParallaxTarget(e:PointerEvent) {
+  if (!parallaxDisc) return;
+  const r = parallaxDisc.getBoundingClientRect();
+  const x = (e.clientX - r.left) / r.width; const y = (e.clientY - r.top) / r.height;
+  const inward = 0.03;
+  discInertial.tx = inward + (1 - inward*2) * Math.min(1, Math.max(0, x));
+  discInertial.ty = inward + (1 - inward*2) * Math.min(1, Math.max(0, y));
+  const specInward = 0.02;
+  specularState.tx = specInward + (1 - specInward*2) * Math.min(1, Math.max(0, x));
+  specularState.ty = specInward + (1 - specInward*2) * Math.min(1, Math.max(0, y));
+  specularState.lastMove = performance.now();
 }
 
 // Click outside disc closes
@@ -216,15 +382,13 @@ let pendingCard: { ring:number; x:number; y:number } | null = null;
 board.onRing((ring:number, x:number, y:number) => {
   if(!boardInteractive) return;
   if (autoChargeInProgress) return; // ignore if an animation already running
-  // 用户需求更新: 仅红心 (ring 0) 再次打开信息圆盘；其它环只显示视觉命中效果。
-  // Allow disc for bullseye OR if that ring's module has openDisc flag enabled
+  // 需求：点击任意环都直接打开信息圆盘（包括外围所有 ring）
   const modCfg = MODULES.find(m=>m.id===ring);
-  const allowDisc = ring === 0 || !!modCfg?.openDisc;
+  const allowDisc = true; // 全部允许
   autoChargeInProgress = true;
   pendingCard = { ring, x, y };
   playAutoCharge(()=> {
     if (pendingCard) {
-      // 统一命中视觉效果：所有环都有标点 + ripple
       spawnHitMarker(pendingCard.x, pendingCard.y);
       spawnImpactRipple(pendingCard.x, pendingCard.y, 0.9);
       if (allowDisc) {

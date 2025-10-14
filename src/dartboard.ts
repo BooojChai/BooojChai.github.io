@@ -32,7 +32,7 @@ export class Dartboard {
   // Because we padded the viewBox, origin (0,0) is now shifted by -pad, so translate by radius to center.
   group.setAttribute('transform', `translate(${radius},${radius})`);
 
-    // Red core + alternating white / black outward (0..6 used)
+    // Original palette: red core + alternating white / black outward (0..6 used)
     const palette = [
       { fill:'#c40020', stroke:'#ff4a5e' }, // 0 red core
       { fill:'#ffffff', stroke:'#d4d4d4' }, // 1 white
