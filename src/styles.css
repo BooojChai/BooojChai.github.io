@@ -8,6 +8,8 @@
   --gold:#ffcc66;
   --radius:18px;
   --ease:smoothstep(.45,.1,.25,1);
+  /* 统一飞镖盘与信息圆盘尺寸（小屏单点修改变量即可） */
+  --board-size:70vmin; /* 默认与之前 70vmin 保持一致 */
   /* 动态信息圆盘主题变量（JS 会按 ring 设置 --disc-accent） */
   --disc-accent: var(--accent);
   --disc-accent-soft: rgba(255,140,90,0.55);
@@ -96,7 +98,7 @@ canvas.starfield-layer { position:fixed; inset:0; width:100%; height:100%; z-ind
 canvas.starfield-layer { image-rendering:auto; }
 /* Slight parallax illusion: we can later add transform on scroll if needed */
 
-.dartboard-wrapper { position:relative; width:min(70vmin,780px); aspect-ratio:1; pointer-events:auto; overflow:visible; opacity:0; transform:scale(.7); filter:blur(10px); transition:opacity 2.1s ease, transform 2.2s cubic-bezier(.55,.1,.25,1), filter 1.6s ease; }
+.dartboard-wrapper { position:relative; width:min(var(--board-size),780px); aspect-ratio:1; pointer-events:auto; overflow:visible; opacity:0; transform:scale(.7); filter:blur(10px); transition:opacity 2.1s ease, transform 2.2s cubic-bezier(.55,.1,.25,1), filter 1.6s ease; }
 .dartboard-wrapper.board-visible { opacity:1; transform:scale(1); filter:blur(0); }
 .dartboard-wrapper.board-visible { opacity:1; transform:scale(1); }
 
@@ -184,7 +186,7 @@ body.revealed .ring { cursor:inherit !important; }
 /* Center overlay disc (replaces rectangular card) */
 .info-disc { position:fixed; inset:0; display:flex; align-items:center; justify-content:center; pointer-events:none; z-index:1500; }
 /* Make disc exactly same visual diameter as dartboard (70vmin), using border-box so padding does not inflate size */
-.info-disc .disc { box-sizing:border-box; width:70vmin; height:70vmin; max-width:780px; max-height:780px; border-radius:50%;
+.info-disc .disc { box-sizing:border-box; width:var(--board-size); height:var(--board-size); max-width:780px; max-height:780px; border-radius:50%;
   --disc-accent: var(--accent, #3ea6ff);
   --disc-accent-soft: color-mix(in srgb, var(--disc-accent) 55%, transparent);
   --disc-accent-glow: color-mix(in srgb, var(--disc-accent) 80%, transparent);
@@ -239,11 +241,11 @@ body.revealed .ring { cursor:inherit !important; }
 @keyframes earth-rotate { to { transform:rotate(360deg); } }
 .info-disc[data-visible="true"] .disc { pointer-events:auto; }
 .info-disc[data-visible="true"] .disc { opacity:1; transform:translateY(var(--disc-shift,0)) scale(1); }
-/* 弹入轻微过冲动画（一次性） */
+/* 弹入动画去除放大回缩的过冲，只做平滑从 0.6 -> 1 的出现 */
 @keyframes disc-pop-in { 0% { transform:translateY(var(--disc-shift,0)) scale(.6); filter:blur(10px) brightness(.7); opacity:0; }
-  55% { transform:translateY(var(--disc-shift,0)) scale(1.025); filter:blur(0) brightness(1.08); opacity:1; }
   100% { transform:translateY(var(--disc-shift,0)) scale(1); filter:blur(0) brightness(1); opacity:1; } }
-.info-disc .disc[data-pop="in"] { animation:disc-pop-in .85s cubic-bezier(.22,1.15,.32,1) both; }
+/* 使用更柔和的缓动，不产生超调感 */
+.info-disc .disc[data-pop="in"] { animation:disc-pop-in .65s cubic-bezier(.33,.85,.4,1) both; }
 .info-disc[data-visible="true"] { pointer-events:auto; }
 .disc-open .dartboard-wrapper svg.dartboard { transition:filter .5s ease, opacity .5s ease; }
 .disc-open .dartboard-wrapper svg.dartboard { filter:opacity(.52) drop-shadow(0 0 18px color-mix(in srgb,var(--disc-accent) 28%, transparent)); opacity:.88; transition:filter .6s ease, opacity .6s ease; }
@@ -261,8 +263,13 @@ body.revealed .ring { cursor:inherit !important; }
 /* Gray-white separator line */
 .info-disc h2[data-title="Bullseye Hit!"]::after { content:""; display:block; width:60%; max-width:480px; height:1px; margin:.95rem auto 1.25rem; background:linear-gradient(90deg, rgba(0,140,255,0) 0%, color-mix(in srgb,var(--disc-accent) 25%, transparent) 8%, color-mix(in srgb,var(--disc-accent) 70%, transparent) 50%, color-mix(in srgb,var(--disc-accent) 25%, transparent) 92%, rgba(0,140,255,0) 100%); box-shadow:0 0 12px -4px color-mix(in srgb,var(--disc-accent) 55%, transparent); position:relative; }
 .info-disc h2[data-title="Bullseye Hit!"]::after { isolation:isolate; }
-/* Shift entire content downward */
-.info-disc .disc { padding-top:4rem; }
+/* Center the content (from heading "Bullseye Hit" to the bottom icon row) vertically inside the disc.
+   We remove the previous forced downward shift (extra top padding) and rely on flex centering. */
+.info-disc .disc {
+  justify-content:center; /* vertical centering of the flex column */
+  padding-top:2.8rem; /* make top/bottom padding symmetric for true centering */
+  padding-bottom:2.8rem;
+}
 .info-disc .body { font:400 clamp(.82rem,1.6vmin,1rem)/1.6 Inter,system-ui,sans-serif; overflow:auto; scrollbar-width:none; -ms-overflow-style:none; text-align:center; }
 .info-disc .body::-webkit-scrollbar { display:none; }
 .info-disc .body .bio {
@@ -340,7 +347,8 @@ body.revealed .ring { cursor:inherit !important; }
 .layer-glow { position:absolute; inset:0; pointer-events:none; mix-blend-mode:screen; }
 
 @media (max-width: 680px) {
-  .dartboard-wrapper { width:86vmin; }
+  /* 小屏统一缩放：只需改变量即可让飞镖盘与信息圆盘保持一致 */
+  :root { --board-size:86vmin; }
   .info-card { max-width:90%; left:50% !important; transform:translate(-50%, 8px) scale(.96); }
   .info-card.visible { transform:translate(-50%,0) scale(1); }
 }
