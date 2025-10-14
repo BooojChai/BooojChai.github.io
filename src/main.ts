@@ -37,24 +37,15 @@ function typeIntro() {
     // Legacy fallback
     setTimeout(activate, 30);
   }
-  // Wait for first interaction to reveal board
-  const firstReveal = (ev: Event) => {
+  const HOLD_DURATION = 2500; // stay visible before lift (updated from 1500ms per request)
+  const autoReveal = () => {
+    if (document.body.classList.contains('revealed')) return;
     document.body.classList.remove('intro-phase');
     document.body.classList.add('revealed');
-    // Subtitle fades out automatically via CSS when body gains .revealed
-    // Smoothly lift the intro text after a slight delay
-    requestAnimationFrame(()=> setTimeout(()=> anchorIntroAboveBoard(), 300));
-    // Delay board fade-in: wait additional 600ms then add board-visible
-  setTimeout(()=> wrapper.classList.add('board-visible'), 600); // earlier start, longer duration for smoother reveal
-    window.removeEventListener('click', firstReveal);
-    window.removeEventListener('keydown', firstRevealKey);
+    requestAnimationFrame(()=> setTimeout(()=> anchorIntroAboveBoard(), 250));
+    setTimeout(()=> wrapper.classList.add('board-visible'), 520);
   };
-  const firstRevealKey = (e: KeyboardEvent) => {
-    // Accept Enter / Space / any key for accessibility
-    firstReveal(e);
-  };
-  window.addEventListener('click', firstReveal, { once:true });
-  window.addEventListener('keydown', firstRevealKey, { once:true });
+  setTimeout(autoReveal, HOLD_DURATION);
 }
 
 function anchorIntroAboveBoard() {
@@ -113,6 +104,20 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
   adjustDiscShift();
   document.body.classList.add('disc-open');
   infoDisc.dataset.visible = 'true';
+  // 动态强调色：根据 ring tone 设置 CSS 变量
+  const ringEl = document.querySelector(`svg.dartboard .ring[data-ring="${anchorRing}"]`) as HTMLElement | null;
+  let tone = ringEl?.dataset.tone;
+  let accent = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+  if (tone === 'red') accent = '#ff4d5d';
+  else if (tone === 'light') accent = '#58b2ff';
+  else if (tone === 'dark') accent = '#ffb366';
+  document.documentElement.style.setProperty('--disc-accent', accent);
+  const discEl = infoDisc.querySelector('.disc') as HTMLElement | null;
+  if (discEl) {
+    discEl.setAttribute('data-pop','in');
+    // 移除旧动画后再次触发（如果连续打开同一环）
+    discEl.addEventListener('animationend', () => discEl.removeAttribute('data-pop'), { once:true });
+  }
   // Hide custom dart cursor while disc is open
   document.body.classList.remove('custom-cursor-active');
   // Prevent accidental immediate close by swallowing the originating click
@@ -124,6 +129,8 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
 function hideCard() {
   delete infoDisc.dataset.visible;
   document.body.classList.remove('disc-open');
+  // 恢复强调色为默认，避免下一次初始出现残留光晕
+  document.documentElement.style.removeProperty('--disc-accent');
   // Cursor will reappear on next pointermove (showCustomCursor)
 }
 
@@ -236,10 +243,10 @@ if (location.search.includes('debug=1') || localStorage.getItem('dartboard-debug
 // Background particles (energy dots + radial drift)
 interface Particle { x:number; y:number; vx:number; vy:number; r:number; life:number; hue:number; }
 // Softened particle visual parameters (reduced intensity)
-const PARTICLE_COUNT = 140; // lower density
-const PARTICLE_BASE_R_MIN = 0.6; // smaller base
-const PARTICLE_BASE_R_RANGE = 1.6; // smaller range
-const PARTICLE_ALPHA_MULT = 0.55; // dimmer
+const PARTICLE_COUNT = 120; // reduced density for subtle presence
+const PARTICLE_BASE_R_MIN = 0.55; // slightly smaller
+const PARTICLE_BASE_R_RANGE = 1.4; // narrower size variance
+const PARTICLE_ALPHA_MULT = 0.38; // lower overall alpha
 const ctx = bgCanvas.getContext('2d');
 let particles: Particle[] = [];
 function initParticles() {
@@ -250,16 +257,17 @@ function initParticles() {
   requestAnimationFrame(loopParticles);
 }
 function spawnParticle(): Particle {
-  const angle = Math.random()*Math.PI*2;
-  const radius = Math.random()* (Math.min(innerWidth, innerHeight)*0.5);
-  const speed = 0.05 + Math.random()*0.25;
+  // Uniform full-screen distribution with mild center gravity handled in loop
+  const x = Math.random()*innerWidth;
+  const y = Math.random()*innerHeight;
+  const speed = 0.04 + Math.random()*0.22;
   return {
-    x: innerWidth/2 + Math.cos(angle)*radius,
-    y: innerHeight/2 + Math.sin(angle)*radius,
+    x,
+    y,
     vx: (Math.random() - .5)*speed,
     vy: (Math.random() - .5)*speed,
-  r: PARTICLE_BASE_R_MIN + Math.random()*PARTICLE_BASE_R_RANGE,
-    life: 600 + Math.random()*600,
+    r: PARTICLE_BASE_R_MIN + Math.random()*PARTICLE_BASE_R_RANGE,
+    life: 700 + Math.random()*700,
     hue: 200 + Math.random()*80
   };
 }
@@ -267,16 +275,37 @@ function loopParticles() {
   if (!ctx) return;
   ctx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
   ctx.globalCompositeOperation = 'lighter';
+  const cx = innerWidth/2, cy = innerHeight/2;
+  const maxR = Math.min(innerWidth, innerHeight) * 0.5; // reference radius
+  const FADE_START = maxR * 0.40; // start fading earlier
+  const FADE_END = maxR * 0.85;   // fully dim sooner
   particles.forEach(p => {
     p.x += p.vx; p.y += p.vy; p.life -= 1;
     if (p.life < 0) { Object.assign(p, spawnParticle()); }
-    // slight pull to center
-    const cx = innerWidth/2, cy = innerHeight/2;
-    p.vx += (cx - p.x)*0.00002;
-    p.vy += (cy - p.y)*0.00002;
+    // Mild gravitational pull to center to avoid edge stagnation
+    p.vx += (cx - p.x)*0.000015;
+    p.vy += (cy - p.y)*0.000015;
     ctx.beginPath();
-  const alpha = Math.max(0, Math.min(1, p.life/800));
-  ctx.fillStyle = `hsla(${p.hue} 65% 58% / ${(alpha*PARTICLE_ALPHA_MULT).toFixed(3)})`;
+    const alphaLife = Math.max(0, Math.min(1, p.life/800));
+    const dist = Math.hypot(p.x - cx, p.y - cy);
+    let radial = 1;
+    if (dist > FADE_START) {
+      const k = Math.min(1, (dist - FADE_START)/(FADE_END - FADE_START));
+      const smooth = k*k*(3 - 2*k); // smoothstep
+      radial = 1 - smooth;
+      radial = 0.25 + radial * 0.75; // baseline floor 0.25
+    }
+    // Center emphasis: boost inner 30% radius gradually (ease curve), then normal
+  const centerR = maxR * 0.36; // expand center emphasis radius
+    let centerBoost = 1;
+    if (dist < centerR) {
+      const c = 1 - dist / centerR; // 1 at center -> 0 at edge of center zone
+      const ease = c*c*(3 - 2*c); // smoothstep
+  // Max boost ~2.4 at absolute center tapering to 1 at boundary
+  centerBoost = 1 + ease * 1.4;
+    }
+    const finalAlpha = alphaLife * PARTICLE_ALPHA_MULT * radial * centerBoost * 0.75; // apply center boost
+    ctx.fillStyle = `hsla(${p.hue} 65% 58% / ${finalAlpha.toFixed(3)})`;
     ctx.arc(p.x, p.y, p.r, 0, Math.PI*2);
     ctx.fill();
   });
@@ -291,6 +320,65 @@ function resizeCanvas() {
 }
 window.addEventListener('resize', resizeCanvas);
 initParticles();
+
+// --- Starfield (static + twinkle) layer ---
+interface Star { x:number; y:number; r:number; phase:number; speed:number; base:number; tint:number; }
+let starCanvas: HTMLCanvasElement | null = null;
+let starCtx: CanvasRenderingContext2D | null = null;
+let stars: Star[] = [];
+const STAR_COUNT = 160; // fewer stars for subtler field
+function initStarfield() {
+  starCanvas = document.createElement('canvas');
+  starCanvas.className = 'starfield-layer';
+  document.body.insertBefore(starCanvas, document.body.firstChild); // furthest back
+  starCtx = starCanvas.getContext('2d');
+  resizeStarCanvas();
+  stars = new Array(STAR_COUNT).fill(0).map(()=> spawnStar());
+  requestAnimationFrame(loopStars);
+}
+function resizeStarCanvas() {
+  if(!starCanvas) return;
+  starCanvas.width = innerWidth * devicePixelRatio;
+  starCanvas.height = innerHeight * devicePixelRatio;
+  starCanvas.style.width = innerWidth+'px';
+  starCanvas.style.height = innerHeight+'px';
+  const sc = starCanvas.getContext('2d');
+  if (sc) sc.scale(devicePixelRatio, devicePixelRatio);
+}
+function spawnStar(): Star {
+  return {
+    x: Math.random()*innerWidth,
+    y: Math.random()*innerHeight,
+  r: Math.random() < 0.85 ? (0.45 + Math.random()*0.9) : (1.1 + Math.random()*0.8),
+    phase: Math.random()*Math.PI*2,
+    speed: 0.5 + Math.random()*1.2, // twinkle speed factor
+  base: 0.18 + Math.random()*0.40, // lower base brightness
+    tint: 190 + Math.random()*80 // bluish to subtle teal range
+  };
+}
+function loopStars() {
+  if(!starCtx || !starCanvas) return;
+  starCtx.clearRect(0,0,starCanvas.width,starCanvas.height);
+  const t = performance.now()/1000;
+  for (const s of stars) {
+    const twinkle = Math.sin(t * s.speed + s.phase);
+  const alpha = s.base + 0.22 * twinkle; // further reduced amplitude
+    const a = Math.max(0, Math.min(1, alpha));
+  starCtx.fillStyle = `hsla(${s.tint} 70% 68% / ${(a*0.55).toFixed(3)})`;
+    starCtx.beginPath();
+    starCtx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    starCtx.fill();
+    if (s.r > 1.5 && a > 0.80) {
+      starCtx.fillStyle = `hsla(${s.tint} 80% 78% / ${(a*0.12).toFixed(3)})`;
+      starCtx.beginPath();
+      starCtx.arc(s.x, s.y, s.r*2.4, 0, Math.PI*2);
+      starCtx.fill();
+    }
+  }
+  requestAnimationFrame(loopStars);
+}
+window.addEventListener('resize', resizeStarCanvas);
+initStarfield();
 
 // --- Custom Interactive Cursor ---
 const customCursor = document.createElement('div');
