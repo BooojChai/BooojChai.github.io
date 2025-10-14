@@ -211,7 +211,7 @@ body.revealed .ring { cursor:inherit !important; }
     0 0 60px -18px color-mix(in srgb, var(--disc-accent) 22%, transparent),
     0 18px 60px -24px rgba(0,0,0,0.85);
   padding:2.4rem 2.8rem 2.2rem; color:#f2f5f7; position:relative; display:flex; flex-direction:column; opacity:0;
-  transform:translateY(var(--disc-shift,0)) scale(.74); transition:opacity .6s cubic-bezier(.55,.1,.25,1); /* 去掉 transform 的 transition，避免与首开动画叠加造成抖动 */ pointer-events:none;
+  transform:translateY(var(--disc-shift,0)) scale(.74); transition:opacity .6s cubic-bezier(.55,.1,.25,1), filter .6s cubic-bezier(.55,.1,.25,1); /* 加入 filter 以支持模糊衰减 */ pointer-events:none; filter:blur(10px);
   backface-visibility:hidden; -webkit-font-smoothing:antialiased;
 }
 /* 内部同心细纹 与 轻微扇区纹理呼应外部飞镖盘 */
@@ -241,7 +241,10 @@ body.revealed .ring { cursor:inherit !important; }
 .info-disc[data-visible="true"] .disc::after { opacity:1; }
 @keyframes earth-rotate { to { transform:rotate(360deg); } }
 .info-disc[data-visible="true"] .disc { pointer-events:auto; }
-.info-disc[data-visible="true"] .disc { opacity:1; transform:translateY(var(--disc-shift,0)) scale(1); }
+.info-disc[data-visible="true"] .disc { opacity:1; transform:translateY(var(--disc-shift,0)) scale(1); filter:blur(0); }
+/* 关闭动画：添加 closing 类时执行 scale & fade */
+.info-disc .disc.closing { opacity:0; transform:translateY(var(--disc-shift,0)) scale(.85); filter:blur(12px); transition:opacity .45s cubic-bezier(.55,.1,.25,1), transform .55s cubic-bezier(.55,.1,.25,1), filter .55s cubic-bezier(.55,.1,.25,1); }
+/* 避免和首开 data-pop 动画冲突：关闭时不再显示弹入动画 */
 /* 弹入动画去除放大回缩的过冲，只做平滑从 0.6 -> 1 的出现 */
 @keyframes disc-pop-in { 0% { transform:translateY(var(--disc-shift,0)) scale(.6); filter:blur(10px) brightness(.7); opacity:0; }
   100% { transform:translateY(var(--disc-shift,0)) scale(1); filter:blur(0) brightness(1); opacity:1; } }

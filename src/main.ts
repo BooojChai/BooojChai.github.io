@@ -131,11 +131,30 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
 }
 
 function hideCard() {
-  delete infoDisc.dataset.visible;
-  document.body.classList.remove('disc-open');
-  // 恢复强调色为默认，避免下一次初始出现残留光晕
-  document.documentElement.style.removeProperty('--disc-accent');
-  // Cursor will reappear on next pointermove (showCustomCursor)
+  if(!infoDisc.dataset.visible) return;
+  const discEl = infoDisc.querySelector('.disc') as HTMLElement | null;
+  if (discEl && !discEl.classList.contains('closing')) {
+    discEl.classList.remove('animating');
+    discEl.classList.add('closing');
+    // 在关闭动画结束后再真正隐藏
+    const onEnd = (e:AnimationEvent|TransitionEvent) => {
+      if (e.type === 'transitionend' && e.target === discEl) {
+        discEl.classList.remove('closing');
+        delete infoDisc.dataset.visible;
+        document.body.classList.remove('disc-open');
+        document.documentElement.style.removeProperty('--disc-accent');
+        discEl.removeEventListener('transitionend', onEnd as any);
+      }
+    };
+    discEl.addEventListener('transitionend', onEnd as any);
+    // 触发重绘确保 transition 能执行
+    discEl.getBoundingClientRect();
+    discEl.classList.add('closing');
+  } else {
+    delete infoDisc.dataset.visible;
+    document.body.classList.remove('disc-open');
+    document.documentElement.style.removeProperty('--disc-accent');
+  }
 }
 
 // Click outside disc closes
