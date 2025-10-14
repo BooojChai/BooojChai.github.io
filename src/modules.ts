@@ -26,13 +26,6 @@ Software engineering is what I excel at and what I rely on for a living. Along t
 Welcome.
 
 </pre>
-    <div class="social-row" aria-label="Social links">
-      <a class="s-icon li" href="https://www.linkedin.com/in/bojun-chai-8b787b375/" target="_blank" rel="noopener" title="LinkedIn" aria-label="LinkedIn" data-name="LinkedIn"></a>
-      <a class="s-icon gh" href="https://github.com/BooojChai" target="_blank" rel="noopener" title="GitHub" aria-label="GitHub" data-name="GitHub"></a>
-      <a class="s-icon pc" href="https://www.ximalaya.com/album/85667561" target="_blank" rel="noopener" title="Podcast" aria-label="Podcast" data-name="Podcast"></a>
-      <a class="s-icon ms" href="https://music.163.com/#/artist?id=34957915" target="_blank" rel="noopener" title="Music" aria-label="Music" data-name="Music"></a>
-      <a class="s-icon bd" href="https://space.bilibili.com/89096037" target="_blank" rel="noopener" title="Band" aria-label="Band" data-name="Band"></a>
-    </div>
     </div>
   `, links: [] },
   { id: 1, key: 'career', title: '职业经历 · Career', body: '时间线：公司 / 角色 / 影响力（占位）。', links: [] },
