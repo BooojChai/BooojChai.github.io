@@ -166,7 +166,32 @@ infoDisc.addEventListener('pointerdown', (e) => {
 
 // Utility: suppress one immediate click bubbling (to avoid open->close race)
 function suppressClickOnce() {
-  const handler = (e:MouseEvent) => { e.stopPropagation(); e.preventDefault(); window.removeEventListener('click', handler, true); };
+  // 仅阻止“同一次触发打开”的那一下导致的立即关闭；
+  // 不阻止第一次真正点击圆盘内部链接（例如社交 icon）。
+  const openerTime = performance.now();
+  const handler = (e:MouseEvent) => {
+    // 如果点击发生在圆盘内部可交互区域（.disc 内部且是 a / button / .s-icon），允许它正常执行。
+    const target = e.target as HTMLElement | null;
+    if (target && target.closest('.info-disc .disc')) {
+      // 若是可点击元素而且时间已经超过 40ms（避免同一冒泡链），放行并移除拦截。
+      if (target.closest('a,button,.s-icon')) {
+        if (performance.now() - openerTime > 40) {
+          window.removeEventListener('click', handler, true);
+          return; // 允许默认行为与跳转
+        }
+      } else {
+        // 非交互元素内部点击：依旧阻止，以免立即关闭
+        e.stopPropagation(); e.preventDefault();
+        window.removeEventListener('click', handler, true);
+        return;
+      }
+    } else {
+      // 圆盘外点击：阻止（避免打开后马上被外层点击关闭）
+      e.stopPropagation(); e.preventDefault();
+      window.removeEventListener('click', handler, true);
+      return;
+    }
+  };
   window.addEventListener('click', handler, true);
 }
 
