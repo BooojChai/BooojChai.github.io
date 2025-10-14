@@ -210,10 +210,6 @@ function adjustDiscShift() {
 // Settings panel removed (sound & contrast toggle)
 
 typeIntro();
-// Ensure document title keeps personalized prefix if changed elsewhere
-if (!document.title.startsWith('Bojun Chai -')) {
-  document.title = 'Bojun Chai - ' + document.title;
-}
 setTimeout(()=> document.body.classList.remove('loading'), 1200);
 // Fallback: ensure interaction enabled even if transitionend missed (e.g., user reduced motion) after max 3s
 setTimeout(()=> { if(!boardInteractive && wrapper.classList.contains('board-visible')) enableBoardInteraction(); }, 3000);
