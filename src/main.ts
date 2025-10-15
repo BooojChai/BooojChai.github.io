@@ -1088,7 +1088,9 @@ function injectMiniGameIfNeeded(moduleId:number) {
 // --- Moon Easter Egg (outer ring trigger) ---
 const moonOverlay = document.createElement('div');
 moonOverlay.className = 'moon-overlay';
-moonOverlay.innerHTML = '<div class="moon-img"><img src="/assets/moon.png" alt="Moon" /></div>';
+// Resolve moon image via Vite to work on GitHub Pages (hashed asset path)
+const moonSrc = new URL('../assets/moon.png', import.meta.url).href;
+moonOverlay.innerHTML = `<div class="moon-img"><img src="${moonSrc}" alt="Moon" /></div>`;
 document.body.appendChild(moonOverlay);
 
 function enterMoonMode() {
