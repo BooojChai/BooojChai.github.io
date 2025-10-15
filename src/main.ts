@@ -102,6 +102,8 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
       h2.innerHTML = '<span class="t-bull">Bullseye</span> <span class="t-hit">Hit!</span>';
     }
     body.innerHTML = `${mod.body}${mod.links?'<ul class="links">'+mod.links.map(l=>`<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join('')+'</ul>':''}`;
+    // Transform preformatted bio into paragraphs and stagger reveal
+    try { setupBullseyeParagraphFade(body); } catch {}
     infoDisc.classList.remove('empty');
   } else {
     // 其它环全部清空文字
@@ -155,6 +157,42 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
   suppressClickOnce();
   setTimeout(trapFocus, 30);
   injectMiniGameIfNeeded(moduleId);
+}
+
+// Transform bullseye preformatted bio into <p> paragraphs and reveal them sequentially
+function setupBullseyeParagraphFade(bodyEl: Element) {
+  try {
+    const bioPre = bodyEl.querySelector('.bio-pre pre') as HTMLElement | null;
+    if (!bioPre) return; // already transformed or no bio
+    const bio = bioPre.closest('.bio') as HTMLElement | null;
+    if (!bio) return;
+    const raw = (bioPre.textContent || '').trim();
+    if (!raw) { bioPre.parentElement?.remove(); return; }
+    // Split by blank lines (>=1 empty line) into paragraphs
+    const parts = raw.replace(/\r\n/g, '\n').split(/\n{2,}/).map(s => s.trim()).filter(Boolean);
+    // Rebuild bio as paragraphs
+    bio.innerHTML = '';
+    bio.classList.add('fade-paras');
+    const paras: HTMLParagraphElement[] = [];
+    for (const txt of parts) {
+      const p = document.createElement('p');
+      p.textContent = txt;
+      bio.appendChild(p);
+      paras.push(p);
+    }
+    // Staggered fade-in
+  const baseDelay = 300; // ms spacing between paragraphs (slower)
+  const startDelay = 420; // ms after disc pop-in begins (slower)
+    paras.forEach((p, i) => {
+      // ensure start state matches CSS (opacity 0, translated)
+      p.classList.remove('is-in');
+      setTimeout(() => {
+        // small per-paragraph breathing phase offset
+        p.style.setProperty('--breath-delay', (i * 0.25).toFixed(2) + 's');
+        p.classList.add('is-in');
+      }, startDelay + i * baseDelay);
+    });
+  } catch { /* noop */ }
 }
 
 function hideCard() {

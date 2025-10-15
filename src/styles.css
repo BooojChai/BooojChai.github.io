@@ -364,6 +364,24 @@ body.revealed .ring { cursor:inherit !important; }
 .info-disc .body .bio p:nth-child(even) { opacity:.8; }
 .info-disc .body .bio p:hover { opacity:1; }
 .info-disc .body .bio p:first-child { margin-top:0; }
+/* Sequential fade-in for bullseye bio paragraphs (even slower, with gentle breathing + subtle blur) */
+.info-disc .body .bio.fade-paras p {
+  opacity:0;
+  transform:translateY(8px);
+  filter:blur(6px);
+  white-space: pre-line;
+  transition:opacity 1.35s cubic-bezier(.33,.85,.4,1), transform 1.35s cubic-bezier(.33,.85,.4,1), filter 1.6s cubic-bezier(.33,.85,.4,1);
+  will-change: opacity, transform, filter;
+}
+.info-disc .body .bio.fade-paras p + p { margin-top:1.25rem; }
+.info-disc .body .bio.fade-paras p.is-in {
+  opacity:1;
+  transform:translateY(0);
+  filter:blur(0);
+  animation:paraBreath 4.8s ease-in-out infinite;
+  animation-delay:var(--breath-delay, 0s);
+}
+@keyframes paraBreath { 0%,100% { opacity:1; } 50% { opacity:.92; } }
 /* Preformatted multiline bio */
 .info-disc .body .bio-pre pre {
   font:400 clamp(.84rem,1.7vmin,1.05rem)/1.62 Inter,system-ui,sans-serif;
