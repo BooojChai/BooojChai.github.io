@@ -14,14 +14,16 @@ export interface ModuleContent {
 export const MODULES: ModuleContent[] = [
   { id: 0, key: 'about', title: 'Bullseye Hit!', body: `
   <div class="bio bio-pre">
-<pre>Hi, I'm Bojun Chai.
+<pre>Hi, here's Bojun,
+a person who still carries a few ideals,
+not so curious about the world but has clear dream.
 
-A person who still carries a few ideals,
-who is not so curious about the world but has clear dream.
+I play a little music, enjoy bands and creating.
+I host a little known podcast, meaningful sounds energize me.
 
-I play a little music, enjoy bands and creation. I host a little‑known podcast, meaningful sounds energize me.
+Software engineering is what I excel at and rely on for a living. Along this path, I have worked for the world's largest consumer electronics and  software companies.
 
-Software engineering is what I excel at and what I rely on for a living. Along this path, I have worked for the world's largest consumer electronics and computer software companies.
+I chase, act, and love.
 
 Welcome.
 

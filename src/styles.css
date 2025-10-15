@@ -115,6 +115,9 @@ svg.dartboard { width:100%; height:100%; filter:drop-shadow(0 4px 18px rgba(0,0,
 /* Slight overall transparency so background particles show through */
 body.revealed svg.dartboard { opacity:0.82; }
 
+/* Static board sheen (animation disabled per user request) */
+svg.dartboard .board-sheen { mix-blend-mode: screen; }
+
 /* Ring labels */
 .ring-label { font:600 18px/1.12 Orbitron, Inter, sans-serif; text-transform:uppercase; letter-spacing:.2em; opacity:.92; transition:fill .35s ease, opacity .35s ease; }
 .ring-label textPath { fill:rgba(255,255,255,0.30); transition:fill .35s ease, filter .4s ease; }
@@ -224,7 +227,7 @@ body.revealed .ring { cursor:inherit !important; }
 /* Planet themed variants (override base Earth-like layers) */
 /* Refined planet themes: softer contrast, broader bands, subtle noise overlay */
 /* Simplified Planet System (Plan C): single base radial gradient + two concentric soft glows via ::before + noise via ::after */
-.info-disc .disc[class*="planet-"] { position:relative; background:var(--planet-bg, radial-gradient(circle at 50% 52%, #08314b 0%, #031b2e 100%)); transition:background 1s ease, box-shadow 1s ease; }
+.info-disc .disc[class*="planet-"] { position:relative; background:var(--planet-bg, radial-gradient(circle at 40% 36%, #08314b 0%, #031b2e 100%)); transition:background 1s ease, box-shadow 1s ease; }
 
 /* Subtle global spin highlight layer (gives slow rotation illusion) */
 /* 旋转速度可通过 --spin-dur 自定义（默认 18s，比原先 28s 更快） */
@@ -251,7 +254,7 @@ body.revealed .ring { cursor:inherit !important; }
 .info-disc .disc.planet-mars,
 .info-disc .disc.planet-saturn,
 .info-disc .disc.planet-moon,
-.info-disc .disc.planet-earth { --planet-bg: radial-gradient(circle at 50% 52%, var(--p-mid) 0%, var(--p-base) 42%, var(--p-shadow) 100%); }
+.info-disc .disc.planet-earth { --planet-bg: radial-gradient(circle at 40% 36%, var(--p-mid) 0%, var(--p-base) 42%, var(--p-shadow) 100%); }
 
 /* Soft highlight + rim darkening */
 .info-disc .disc[class*="planet-"]::before { content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
@@ -263,7 +266,8 @@ body.revealed .ring { cursor:inherit !important; }
 
 /* Fine noise (denser & subtle) */
 .info-disc .disc[class*="planet-"]::after { content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
-  --lx:50%; --ly:50%; /* default light center */
+  /* default light center offset more to upper-left to avoid title overlap */
+  --lx:34%; --ly:30%;
   /* 降低条纹：减小高频噪声不透明度并增大周期，避免肉眼明显环带 */
   background:
     radial-gradient(circle at var(--lx) var(--ly), rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 10%, rgba(255,255,255,0.035) 24%, rgba(255,255,255,0) 42%),
@@ -273,7 +277,7 @@ body.revealed .ring { cursor:inherit !important; }
 .info-disc .disc[class*="planet-"]:hover::after { opacity:.55; }
 
 /* Specular highlight (独立镜面高光，支持惯性与增益) */
-.info-disc .disc[class*="planet-"] .specular { position:absolute; inset:0; border-radius:50%; pointer-events:none; mix-blend-mode:screen; --slx:50%; --sly:50%; --specular-gain:1; opacity:.82; filter:brightness(var(--specular-gain)) saturate(1.05);
+.info-disc .disc[class*="planet-"] .specular { position:absolute; inset:0; border-radius:50%; pointer-events:none; mix-blend-mode:screen; --slx:34%; --sly:30%; --specular-gain:1; opacity:.82; filter:brightness(var(--specular-gain)) saturate(1.05);
   background:
     radial-gradient(circle at var(--slx) var(--sly), rgba(255,255,255,0.70) 0%, rgba(255,255,255,0.42) 5%, rgba(255,255,255,0.16) 11%, rgba(255,255,255,0.06) 18%, rgba(255,255,255,0) 32%),
     radial-gradient(circle at var(--slx) var(--sly), rgba(255,255,255,0.34) 0%, rgba(255,255,255,0) 54%);
