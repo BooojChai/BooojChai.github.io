@@ -435,7 +435,8 @@ board.onRing((ring:number, x:number, y:number) => {
   if (autoChargeInProgress) return; // ignore if an animation already running
   // 需求：点击任意环都直接打开信息圆盘（包括外围所有 ring）
   const modCfg = MODULES.find(m=>m.id===ring);
-  const allowDisc = true; // 全部允许
+  // 外层黑环（ring 6）触发月亮彩蛋，其它环仍打开信息圆盘
+  const allowDisc = ring !== 6;
   autoChargeInProgress = true;
   pendingCard = { ring, x, y };
   playAutoCharge(()=> {
@@ -445,6 +446,9 @@ board.onRing((ring:number, x:number, y:number) => {
       if (allowDisc) {
         const mod = getModuleByRing(pendingCard.ring);
         if (mod) showCard(mod.id, pendingCard.ring, { x: pendingCard.x, y: pendingCard.y });
+      } else {
+        // 外圈命中：进入月亮模式
+        enterMoonMode();
       }
       playImpact();
     }
@@ -454,6 +458,8 @@ board.onRing((ring:number, x:number, y:number) => {
 });
 
 document.addEventListener('keydown', (e) => {
+  // If moon overlay is showing, ignore board keyboard controls entirely
+  if (document.body.classList.contains('moon-mode')) { e.preventDefault(); return; }
   if(!boardInteractive) return; // block keyboard activation before animation end
   if (e.key === 'Escape') { hideCard(); return; }
   if (['ArrowRight','ArrowDown'].includes(e.key)) { board.focusNext(1); e.preventDefault(); }
@@ -649,7 +655,7 @@ customCursor.className = 'custom-cursor';
 // 初始移出视口，防止 (0,0) 闪现；第一次 pointermove 会覆盖 transform
 customCursor.style.transform = 'translate(-200px,-200px)';
 // Plan C: top-down dart (vertical view) – concentric + fins, no directional rotation tracking
-customCursor.innerHTML = '<div class="cc-outer"></div><div class="cc-inner"></div><div class="cc-dart top-view" aria-hidden="true">\n  <svg class="dart-top" viewBox="0 0 100 100" width="54" height="54">\n    <defs>\n      <radialGradient id="dtCore" cx="50%" cy="50%" r="50%">\n        <stop offset="0%" stop-color="#ffe8dd"/>\n        <stop offset="55%" stop-color="#ff9c64"/>\n        <stop offset="100%" stop-color="#ff5a2d"/>\n      </radialGradient>\n      <linearGradient id="dtShaft" x1="0" x2="0" y1="0" y2="1">\n        <stop offset="0%" stop-color="#fff4ee"/>\n        <stop offset="100%" stop-color="#ffc6a2"/>\n      </linearGradient>\n      <linearGradient id="dtFin" x1="0" x2="1" y1="0" y2="0">\n        <stop offset="0%" stop-color="#2d3f54"/>\n        <stop offset="100%" stop-color="#4f6d90"/>\n      </linearGradient>\n    </defs>\n    <!-- four fins -->\n    <path d="M50 6 L60 22 L50 32 L40 22 Z" fill="url(#dtFin)" stroke="#90b4d2" stroke-width="1.2"/>\n    <path d="M94 50 L78 60 L68 50 L78 40 Z" fill="url(#dtFin)" stroke="#90b4d2" stroke-width="1.2"/>\n    <path d="M50 94 L40 78 L50 68 L60 78 Z" fill="url(#dtFin)" stroke="#90b4d2" stroke-width="1.2"/>\n    <path d="M6 50 L22 40 L32 50 L22 60 Z" fill="url(#dtFin)" stroke="#90b4d2" stroke-width="1.2"/>\n    <!-- shaft circle layers -->\n    <circle cx="50" cy="50" r="18" fill="url(#dtShaft)" stroke="#ffe1d1" stroke-width="1.4"/>\n    <circle cx="50" cy="50" r="10" fill="url(#dtCore)" stroke="#ffd2b8" stroke-width="1"/>\n    <circle class="core-glow" cx="50" cy="50" r="4.2" fill="#fff"/>\n  </svg>\n</div>';
+customCursor.innerHTML = '<div class="cc-outer"></div><div class="cc-inner"></div><div class="cc-dart top-view" aria-hidden="true">\n  <svg class="dart-top" viewBox="0 0 100 100" width="54" height="54">\n    <defs>\n      <!-- metallic grayscale core -->\n      <radialGradient id="dtCore" cx="50%" cy="50%" r="50%">\n        <stop offset="0%" stop-color="#f6f7f8"/>\n        <stop offset="55%" stop-color="#b3b7bc"/>\n        <stop offset="100%" stop-color="#2a2e33"/>\n      </radialGradient>\n      <!-- brushed metal shaft -->\n      <linearGradient id="dtShaft" x1="0" x2="0" y1="0" y2="1">\n        <stop offset="0%" stop-color="#e9ecef"/>\n        <stop offset="100%" stop-color="#8a8f95"/>\n      </linearGradient>\n      <!-- fins in dark graphite -->\n      <linearGradient id="dtFin" x1="0" x2="1" y1="0" y2="0">\n        <stop offset="0%" stop-color="#3a3f45"/>\n        <stop offset="100%" stop-color="#6a6f75"/>\n      </linearGradient>\n    </defs>\n    <!-- four fins -->\n    <path d="M50 6 L60 22 L50 32 L40 22 Z" fill="url(#dtFin)" stroke="#cfd3d8" stroke-width="1.2"/>\n    <path d="M94 50 L78 60 L68 50 L78 40 Z" fill="url(#dtFin)" stroke="#cfd3d8" stroke-width="1.2"/>\n    <path d="M50 94 L40 78 L50 68 L60 78 Z" fill="url(#dtFin)" stroke="#cfd3d8" stroke-width="1.2"/>\n    <path d="M6 50 L22 40 L32 50 L22 60 Z" fill="url(#dtFin)" stroke="#cfd3d8" stroke-width="1.2"/>\n    <!-- hull / cockpit -->\n    <circle cx="50" cy="50" r="18" fill="url(#dtShaft)" stroke="#e2e5e9" stroke-width="1.4"/>\n    <circle cx="50" cy="50" r="10" fill="url(#dtCore)" stroke="#d0d4d8" stroke-width="1"/>\n    <circle class="core-glow" cx="50" cy="50" r="4.2" fill="#ffffff"/>\n  </svg>\n</div>';
 document.body.appendChild(customCursor);
 let cursorVisible = false;
 let cursorDown = false;
@@ -948,6 +954,7 @@ window.addEventListener('pointerup', (e) => {
 // Outside-board click detection (use pointerup so position stable). Trigger halo + burst when not clicking dartboard or info disc.
 window.addEventListener('click', (e) => {
   if(!document.body.classList.contains('revealed')) return;
+  if (document.body.classList.contains('moon-mode')) return; // 月亮模式下不触发外部点击特效
   if (document.body.classList.contains('disc-open')) return; // suppressed while disc open
   const target = e.target as HTMLElement | null;
   if (target && (target.closest('.dartboard-wrapper') || target.closest('svg.dartboard'))) return; // board click handled elsewhere
@@ -1077,3 +1084,77 @@ function injectMiniGameIfNeeded(moduleId:number) {
 
 // Hook into board ring activation to inject mini-game
 // Removed legacy re-subscribe logic; unified above listener now handles everything
+
+// --- Moon Easter Egg (outer ring trigger) ---
+const moonOverlay = document.createElement('div');
+moonOverlay.className = 'moon-overlay';
+moonOverlay.innerHTML = '<div class="moon-img"><img src="/assets/moon.png" alt="Moon" /></div>';
+document.body.appendChild(moonOverlay);
+
+function enterMoonMode() {
+  document.body.classList.add('moon-mode');
+  // While moon is visible, any interaction should exit
+  window.addEventListener('pointerdown', handleAnyExit, { passive: true, capture: true });
+  window.addEventListener('wheel', handleAnyExit, { passive: true, capture: true });
+  window.addEventListener('keydown', handleAnyExit, { capture: true });
+}
+function exitMoonMode() {
+  document.body.classList.remove('moon-mode');
+  window.removeEventListener('pointerdown', handleAnyExit, true as any);
+  window.removeEventListener('wheel', handleAnyExit, true as any);
+  window.removeEventListener('keydown', handleAnyExit, true as any);
+}
+
+// Click outside moon image closes; clicking image does nothing
+// Any click/tap inside overlay exits
+moonOverlay.addEventListener('click', () => exitMoonMode());
+// Escape closes
+window.addEventListener('keydown', (e) => { if (e.key === 'Escape' && document.body.classList.contains('moon-mode')) exitMoonMode(); });
+
+// Optional: sanitize moon PNG edges to reduce checkerboard fringe without removing intended halo
+function sanitizeMoonImage(img: HTMLImageElement) {
+  if (!img.complete) { img.addEventListener('load', () => sanitizeMoonImage(img), { once: true }); return; }
+  const w = img.naturalWidth, h = img.naturalHeight;
+  if (!w || !h) return;
+  try {
+    const cvs = document.createElement('canvas');
+    cvs.width = w; cvs.height = h;
+    const c = cvs.getContext('2d');
+    if (!c) return;
+    c.drawImage(img, 0, 0);
+    const imgData = c.getImageData(0, 0, w, h);
+    const d = imgData.data;
+    // Two-stage soft cleanup: very low-alpha -> force black RGB; low-to-mid alpha -> blend RGB toward black
+    const hardCut = 26;   // <= hardCut: fully black RGB
+    const softEnd = 85;   // <= softEnd: blend; > softEnd: keep original RGB
+    for (let i = 0; i < d.length; i += 4) {
+      const a = d[i+3];
+      if (a <= hardCut) {
+        d[i] = 0; d[i+1] = 0; d[i+2] = 0; // fully black to hide baked checkerboard tint
+      } else if (a <= softEnd) {
+        const t = (softEnd - a) / (softEnd - hardCut); // 0..1 as alpha gets lower
+        d[i] = Math.round(d[i] * (1 - t));
+        d[i+1] = Math.round(d[i+1] * (1 - t));
+        d[i+2] = Math.round(d[i+2] * (1 - t));
+      }
+    }
+    c.putImageData(imgData, 0, 0);
+    const url = cvs.toDataURL('image/png');
+    // Swap source to cleaned data URL; keep a fallback if conversion fails
+    if (url && url.startsWith('data:image/png')) {
+      img.src = url;
+    }
+  } catch { /* ignore if canvas tainted or unsupported */ }
+}
+// Kick off sanitize once overlay is created
+const moonImg = moonOverlay.querySelector('img');
+if (moonImg instanceof HTMLImageElement) sanitizeMoonImage(moonImg);
+
+function handleAnyExit(e: Event) {
+  if (!document.body.classList.contains('moon-mode')) return;
+  // Prevent the same event from triggering board actions
+  try { if ((e as any).preventDefault) (e as any).preventDefault(); } catch {}
+  try { if ((e as any).stopImmediatePropagation) (e as any).stopImmediatePropagation(); } catch {}
+  try { if ((e as any).stopPropagation) (e as any).stopPropagation(); } catch {}
+  exitMoonMode();
+}
