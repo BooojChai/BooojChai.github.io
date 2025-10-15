@@ -94,12 +94,18 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
   if (!mod) return;
   const h2 = infoDisc.querySelector('h2')!;
   const body = infoDisc.querySelector('.body')!;
-  if (anchorRing === 0) {
-    // 中心（蓝色）圆盘保留内容
+  if (anchorRing === 0 || anchorRing === 1 || anchorRing === 2) {
+    // 展示内容（靶心与第一环）
     h2.textContent = mod.title;
     h2.setAttribute('data-title', mod.title);
     if (mod.title === 'Bullseye Hit!') {
       h2.innerHTML = '<span class="t-bull">Bullseye</span> <span class="t-hit">Hit!</span>';
+    } else if (mod.title === 'Growing Up') {
+      // Unified gradient across the entire title for harmony
+      h2.innerHTML = '<span class="t-grow">Growing Up</span>';
+    } else if (mod.title === 'Career') {
+      // Dual-color gradient title with halo and separator
+      h2.innerHTML = '<span class="t-career">Career</span>';
     }
     body.innerHTML = `${mod.body}${mod.links?'<ul class="links">'+mod.links.map(l=>`<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join('')+'</ul>':''}`;
     // Transform preformatted bio into paragraphs and stagger reveal
@@ -174,9 +180,16 @@ function setupBullseyeParagraphFade(bodyEl: Element) {
     bio.innerHTML = '';
     bio.classList.add('fade-paras');
     const paras: HTMLParagraphElement[] = [];
-    for (const txt of parts) {
+    for (let txt of parts) {
+      // Inline-linkify JUST (uppercase word) to official site
+      txt = txt.replace(/\bJUST\b/g, '<a class="inline-link" href="https://en.just.edu.cn/" target="_blank" rel="noopener">JUST</a>');
+        // Inline-linkify "Label (https://...)" patterns → Only link the capitalized label just before parentheses
+        // Examples: Galaxy Watch (url), OPPO (url), Bing (url), Copilot (url)
+        txt = txt.replace(/([A-Z][A-Za-z0-9+'’`-]*(?:\s+[A-Z][A-Za-z0-9+'’`-]*)*)\s*\((https?:\/\/[^)]+)\)/g,
+          (_m, label, url) => `<a class="inline-link" href="${url}" target="_blank" rel="noopener">${String(label).trim()}</a>`
+        );
       const p = document.createElement('p');
-      p.textContent = txt;
+      p.innerHTML = txt;
       bio.appendChild(p);
       paras.push(p);
     }

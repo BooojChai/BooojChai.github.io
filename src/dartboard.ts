@@ -50,8 +50,10 @@ export class Dartboard {
     // Define labels for 7 rings (0 center to 6 outer)
     const labels = [
       'CORE · IDENTITY · PURPOSE · ',
-      'FOCUS · ATTENTION · DEPTH · ',
-      'LEARNING · GROWTH · ITERATION · ',
+      // Ring 1: Growing-related
+      'GROWING · LEARNING · EVOLVING · ',
+      // Ring 2: Career-related
+      'CAREER · JOURNEY · EXPERIENCE · ',
       'CREATIVITY · DESIGN · AESTHETICS · ',
       'SYSTEMS · ARCHITECTURE · STRUCTURE · ',
       'EXECUTION · SHIPPING · IMPACT · ',

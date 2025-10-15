@@ -28,8 +28,36 @@ Welcome.
 </pre>
     </div>
   `, links: [] },
-  { id: 1, key: 'career', title: '职业经历 · Career', body: '时间线：公司 / 角色 / 影响力（占位）。', links: [] },
-  { id: 2, key: 'projects', title: '项目作品 · Projects', body: '展示代表性项目与仓库链接。', links: [{label:'GitHub', url:'https://github.com/'}] },
+  { id: 1, key: 'growing', title: 'Growing Up', body: `
+  <div class="bio bio-pre">
+<pre>I'm from China.
+
+I don't speak any dialect other than Mandarin.
+I haven't traveled extensively, but I'm a global citizen.
+
+My last educational experience was studying Communications Engineering at JUST, which ended in 2016.
+
+However, true growth is always ongoing.
+
+</pre>
+    </div>
+  `, links: [] },
+  { id: 2, key: 'career', title: 'Career', body: `
+  <div class="bio bio-pre">
+<pre>
+
+My journey began with an mediocre small company.
+Thankfully, that was just the first step.
+
+I was fortunate to join Samsung, developing the Galaxy Watch, and later worked on Android system development at OPPO.
+
+Currently, I work at Microsoft, delivering Bing (https://play.google.com/store/apps/details?id=com.microsoft.bing) and Copilot (https://play.google.com/store/search?q=Copilot&c=apps).
+
+I'm not a geek or a researcher, but I believe in the value that technology brings to peoples.
+
+</pre>
+    </div>
+  `, links: [] },
   { id: 3, key: 'tech', title: '技术栈 · Tech Stack', body: '精通 / 熟悉 / 了解：以图标或标签形式（占位）。' },
   { id: 4, key: 'blog', title: '博客 · Blog', body: '最近文章列表或外部博客入口。', links:[{label:'Blog', url:'#'}] },
   { id: 5, key: 'photo', title: '摄影 · Photography', body: '精选照片或社交平台链接。', links:[{label:'Instagram', url:'#'}] },
