@@ -173,7 +173,50 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
 function setupBullseyeParagraphFade(bodyEl: Element) {
   try {
     const bioPre = bodyEl.querySelector('.bio-pre pre') as HTMLElement | null;
-    if (!bioPre) return; // already transformed or no bio
+    const existingBio = bodyEl.querySelector('.bio.fade-paras') as HTMLElement | null;
+    // Debug helper
+    const titleEl = document.querySelector('.info-disc h2[data-title]') as HTMLElement | null;
+    const modTitle = titleEl?.getAttribute('data-title') || 'Unknown';
+    const dbg = (...a:any[]) => { (window as any).DISC_DEBUG && console.log('[DISC FADE]', modTitle, ...a); };
+    dbg('setup start', { hasPre: !!bioPre, hasExisting: !!existingBio });
+    // Replay path: no <pre>, but we have an existing transformed bio → restart animation
+    if (!bioPre && existingBio) {
+      const paras = Array.from(existingBio.querySelectorAll('p')) as HTMLParagraphElement[];
+      if (paras.length) {
+        const baseDelay = 300;
+        const startDelay = 420;
+        dbg('replay paragraphs', paras.length);
+        // Explicitly set initial styles to guarantee a transition starting point
+        paras.forEach((p,i) => {
+          p.classList.remove('is-in');
+          // reset inline style breath delay so we can reassign (optional)
+          p.style.removeProperty('--breath-delay');
+          p.style.opacity = '0';
+          p.style.transform = 'translateY(8px)';
+          p.style.filter = 'blur(6px)';
+        });
+        // Force reflow
+        void existingBio.offsetWidth;
+        // Use double rAF to ensure the initial state is committed before scheduling transitions
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            paras.forEach((p,i) => {
+              setTimeout(() => {
+                p.style.setProperty('--breath-delay', (i * 0.25).toFixed(2) + 's');
+                p.classList.add('is-in');
+                // Cleanup inline overrides so CSS class controls after transition
+                p.style.removeProperty('opacity');
+                p.style.removeProperty('transform');
+                p.style.removeProperty('filter');
+                dbg('re-in', i, p.textContent?.slice(0,40));
+              }, startDelay + i * baseDelay);
+            });
+          });
+        });
+      }
+      return; // replay handled
+    }
+    if (!bioPre) return; // no bio content at all
     const bio = bioPre.closest('.bio') as HTMLElement | null;
     if (!bio) return;
     const raw = (bioPre.textContent || '').trim();
@@ -197,17 +240,32 @@ function setupBullseyeParagraphFade(bodyEl: Element) {
       bio.appendChild(p);
       paras.push(p);
     }
-    // Staggered fade-in
-  const baseDelay = 300; // ms spacing between paragraphs (slower)
-  const startDelay = 420; // ms after disc pop-in begins (slower)
-    paras.forEach((p, i) => {
-      // ensure start state matches CSS (opacity 0, translated)
+    dbg('initial transform paragraphs', paras.length);
+  // Staggered fade-in (first time)
+    const baseDelay = 300; // ms spacing between paragraphs (slower)
+    const startDelay = 420; // ms after disc pop-in begins (slower)
+    // Explicit initial states (in case CSS was overridden earlier)
+    paras.forEach(p => {
       p.classList.remove('is-in');
-      setTimeout(() => {
-        // small per-paragraph breathing phase offset
-        p.style.setProperty('--breath-delay', (i * 0.25).toFixed(2) + 's');
-        p.classList.add('is-in');
-      }, startDelay + i * baseDelay);
+      p.style.opacity = '0';
+      p.style.transform = 'translateY(8px)';
+      p.style.filter = 'blur(6px)';
+    });
+    // Reflow to lock initial style
+    void (paras[0]?.offsetWidth);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        paras.forEach((p, i) => {
+          setTimeout(() => {
+            p.style.setProperty('--breath-delay', (i * 0.25).toFixed(2) + 's');
+            p.classList.add('is-in');
+            p.style.removeProperty('opacity');
+            p.style.removeProperty('transform');
+            p.style.removeProperty('filter');
+            dbg('first-in', i, p.textContent?.slice(0,40));
+          }, startDelay + i * baseDelay);
+        });
+      });
     });
   } catch { /* noop */ }
 }

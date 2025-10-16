@@ -408,21 +408,21 @@ body.revealed .ring { cursor:inherit !important; }
 }
 /* Dual-tone for Podcast (warm terracotta ↔ ember to match Mars accent) */
 .info-disc h2 .t-podcast {
-  /* Harmonized: build directly off --disc-accent (#e36846 for ring 4) with progressive tint→pure→ember */
+  /* Brightened: shift more toward near-white while retaining warm identity */
   background:linear-gradient(102deg,
-    color-mix(in srgb,var(--disc-accent) 14%, #ffffff) 0%,
-    color-mix(in srgb,var(--disc-accent) 30%, #ffffff) 20%,
-    color-mix(in srgb,var(--disc-accent) 50%, #ffffff) 38%,
-    color-mix(in srgb,var(--disc-accent) 70%, #ffffff) 56%,
-    color-mix(in srgb,var(--disc-accent) 82%, #ffffff) 72%,
-    color-mix(in srgb,var(--disc-accent) 88%, #ffffff) 84%,
-    color-mix(in srgb,var(--disc-accent) 92%, #fbe9e2) 92%,  /* soften darkening */
-    color-mix(in srgb,var(--disc-accent) 78%, #ffffff) 100%);
+    color-mix(in srgb,var(--disc-accent) 8%,  #ffffff) 0%,
+    color-mix(in srgb,var(--disc-accent) 14%, #ffffff) 14%,
+    color-mix(in srgb,var(--disc-accent) 20%, #ffffff) 30%,
+    color-mix(in srgb,var(--disc-accent) 28%, #ffffff) 46%,
+    color-mix(in srgb,var(--disc-accent) 34%, #ffffff) 60%,
+    color-mix(in srgb,var(--disc-accent) 30%, #ffffff) 72%,
+    color-mix(in srgb,var(--disc-accent) 22%, #ffffff) 86%,
+    color-mix(in srgb,var(--disc-accent) 12%, #ffffff) 100%);
   -webkit-background-clip:text; background-clip:text; color:transparent;
   text-shadow:
-    0 0 4px color-mix(in srgb,var(--disc-accent) 50%, transparent),
-    0 0 10px color-mix(in srgb,var(--disc-accent) 38%, transparent),
-    0 0 16px color-mix(in srgb,var(--disc-accent) 28%, transparent);
+    0 0 3px color-mix(in srgb,var(--disc-accent) 34%, transparent),
+    0 0 7px color-mix(in srgb,var(--disc-accent) 24%, transparent),
+    0 0 12px color-mix(in srgb,var(--disc-accent) 16%, transparent);
 }
 /* '.t-up' no longer used; unified gradient handled by .t-grow */
 /* Gray-white separator line */
@@ -509,7 +509,7 @@ body.revealed .ring { cursor:inherit !important; }
   /* Soft clamp inside circle */
   position:relative;
 }
-.info-disc .body .bio p { margin:.72rem auto 0; text-align:center; max-width:60ch; position:relative; }
+.info-disc .body .bio p { margin:.72rem auto 0; text-align:center; max-width:60ch; position:relative; text-shadow:0 0 2.5px rgba(255,255,255,0.22), 0 0 8px rgba(255,255,255,0.12), 0 0 14px rgba(255,255,255,0.055); }
 .info-disc .body .bio p:nth-child(odd) { opacity:.92; }
 .info-disc .body .bio p:nth-child(even) { opacity:.8; }
 .info-disc .body .bio p:hover { opacity:1; }
@@ -544,24 +544,11 @@ body.revealed .ring { cursor:inherit !important; }
   text-align:center;
   background:linear-gradient(180deg,rgba(255,255,255,0.85),rgba(210,220,228,0.72));
   -webkit-background-clip:text; background-clip:text; color:transparent;
-  filter:drop-shadow(0 0 6px rgba(255,255,255,0.06));
+  filter:drop-shadow(0 0 6px rgba(255,255,255,0.11)) drop-shadow(0 0 14px rgba(255,255,255,0.05));
   margin-left:auto; margin-right:auto; /* block centered overall */
   letter-spacing:.02em;
 }
-/* Podcast page: slightly more transparent body text for a softer feel */
-/* Podcast page: use solid subtle grayish-white text instead of translucent gradient */
-.info-disc h2[data-title="Podcast"] + .body .bio-pre pre {
-  background:none;
-  color:#f2f3f4;
-  -webkit-background-clip:initial; background-clip:initial; filter:drop-shadow(0 0 5px rgba(255,140,90,0.18));
-  transition:color .35s ease, filter .35s ease;
-}
-.info-disc h2[data-title="Podcast"] + .body .bio-pre pre:hover { color:#ffffff; filter:drop-shadow(0 0 7px rgba(255,140,90,0.26)); }
-/* Podcast paragraphs (after pre transformed): stronger distinguishable gray base, then soften slightly when fully in */
-.info-disc.is-podcast .body .bio.fade-paras p { color:#e0e4e7; }
-.info-disc.is-podcast .body .bio.fade-paras p.is-in { color:#f1f3f4; transition:color .5s ease; }
-.info-disc.is-podcast .body .bio.fade-paras p.is-in:first-child { color:#f6f7f8; }
-.info-disc.is-podcast .body .bio.fade-paras p.is-in:hover { color:#ffffff; }
+/* Podcast-specific text color overrides removed: now inherits default gradient/paragraph styles */
 /* Social icon row */
 /* Legacy in-disc social row removed; shared styles reused for global bar */
 
