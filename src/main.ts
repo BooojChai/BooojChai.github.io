@@ -94,18 +94,22 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
   if (!mod) return;
   const h2 = infoDisc.querySelector('h2')!;
   const body = infoDisc.querySelector('.body')!;
-  if (anchorRing === 0 || anchorRing === 1 || anchorRing === 2) {
+  if (anchorRing === 0 || anchorRing === 1 || anchorRing === 2 || anchorRing === 3 || anchorRing === 4) {
     // 展示内容（靶心与第一环）
     h2.textContent = mod.title;
     h2.setAttribute('data-title', mod.title);
-    if (mod.title === 'Bullseye Hit!') {
-      h2.innerHTML = '<span class="t-bull">Bullseye</span> <span class="t-hit">Hit!</span>';
+    if (mod.title === 'Bullseye Hit') {
+      h2.innerHTML = '<span class="t-bull">Bullseye</span> <span class="t-hit">Hit</span>';
     } else if (mod.title === 'Growing Up') {
       // Unified gradient across the entire title for harmony
       h2.innerHTML = '<span class="t-grow">Growing Up</span>';
     } else if (mod.title === 'Career') {
       // Dual-color gradient title with halo and separator
       h2.innerHTML = '<span class="t-career">Career</span>';
+    } else if (mod.title === 'Music Life') {
+      h2.innerHTML = '<span class="t-music">Music Life</span>';
+    } else if (mod.title === 'Podcast') {
+      h2.innerHTML = '<span class="t-podcast">Podcast</span>';
     }
     body.innerHTML = `${mod.body}${mod.links?'<ul class="links">'+mod.links.map(l=>`<li><a href="${l.url}" target="_blank" rel="noopener">${l.label}</a></li>`).join('')+'</ul>':''}`;
     // Transform preformatted bio into paragraphs and stagger reveal
