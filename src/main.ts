@@ -132,7 +132,7 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
     1: '#e3c15d', // Venus
     2: '#d49b61', // Jupiter
     3: '#c3ccd4', // Mercury
-    4: '#e36846', // Mars
+  4: '#ef7858', // Mars (lightened)
     5: '#e1d4b2', // Saturn
     6: '#f0f3f5'  // Moon
   };
@@ -275,24 +275,25 @@ function hideCard() {
   const discEl = infoDisc.querySelector('.disc') as HTMLElement | null;
   if (discEl && !discEl.classList.contains('closing')) {
     discEl.classList.remove('animating');
+    // 预先标记 will-change 以平滑合成层
     discEl.classList.add('closing');
-    // 在关闭动画结束后再真正隐藏
+    // 强制 reflow 以便下面的 closing-active 过渡生效
+    void discEl.offsetWidth; // or getBoundingClientRect
+    discEl.classList.add('closing-active');
     const onEnd = (e:AnimationEvent|TransitionEvent) => {
-      if (e.type === 'transitionend' && e.target === discEl) {
-        discEl.classList.remove('closing');
+      if (e.type === 'transitionend' && e.target === discEl && discEl.classList.contains('closing-active')) {
+        discEl.classList.remove('closing','closing-active');
         delete infoDisc.dataset.visible;
         document.body.classList.remove('disc-open');
         const discEl2 = infoDisc.querySelector('.disc') as HTMLElement | null;
         if (discEl2) discEl2.style.removeProperty('--disc-accent');
-  if (discEl2) discEl2.className = discEl2.className.replace(/\bplanet-[a-z]+\b/g,'').trim();
+        if (discEl2) discEl2.className = discEl2.className.replace(/\bplanet-[a-z]+\b/g,'').trim();
         discEl.removeEventListener('transitionend', onEnd as any);
         disableDiscLighting(discEl);
+        // 圆盘关闭后立即允许飞盘淡入（无延迟）
       }
     };
-    discEl.addEventListener('transitionend', onEnd as any);
-    // 触发重绘确保 transition 能执行
-    discEl.getBoundingClientRect();
-    discEl.classList.add('closing');
+    discEl.addEventListener('transitionend', onEnd as any, { once:false });
   } else {
     delete infoDisc.dataset.visible;
     document.body.classList.remove('disc-open');
@@ -300,6 +301,7 @@ function hideCard() {
     if (discEl2) discEl2.style.removeProperty('--disc-accent');
     if (discEl2) discEl2.className = discEl2.className.replace(/\bplanet-[a-z]+\b/g,'').trim();
     if (discEl2) disableDiscLighting(discEl2);
+    // 非动画路径同样不做延迟
   }
 }
 
@@ -758,6 +760,8 @@ function setPower(p:number) {
   power = Math.max(0, Math.min(1, p));
   customCursor.style.setProperty('--power', power.toFixed(4));
   if (power > 0 && !charging) { charging = true; customCursor.dataset.charging = '1'; }
+    // 在关闭过程开始时先保持飞盘继续淡出状态（延后再亮起）
+    document.body.classList.add('board-hold');
   if (power === 0 && charging) { charging = false; delete customCursor.dataset.charging; }
 }
 
@@ -768,6 +772,8 @@ function playAutoCharge(finalCb:()=>void) {
   const overshootDur = 70;      // small enlarge anticipation
   const shrinkDur = 180;        // rapid shrink to min
   const holdMinDur = 30;        // pause at minimum (user requested 30ms)
+        // 延迟 180ms 再撤销 board-hold 触发飞盘淡入
+        setTimeout(()=> document.body.classList.remove('board-hold'), 180);
   const dissipateDur = 80;      // fade / blur return window while staying small (power falls)
   const peakPower = 0.95;
   const total = riseDur + overshootDur + shrinkDur + holdMinDur + dissipateDur;
@@ -778,6 +784,9 @@ function playAutoCharge(finalCb:()=>void) {
   let shockwaveSpawned = false;
   function spawnShockwave() {
     if(!dart) return;
+    // 非动画路径同样保持短暂延迟
+    document.body.classList.add('board-hold');
+    setTimeout(()=> document.body.classList.remove('board-hold'), 380);
     const wave = document.createElement('div');
     wave.className = 'throw-shockwave';
     dart.appendChild(wave);

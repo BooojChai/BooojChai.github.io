@@ -132,8 +132,8 @@ canvas.starfield-layer { image-rendering:auto; }
 /* Center signature appears only after board reveal (phase 2) */
 
 svg.dartboard { width:100%; height:100%; filter:drop-shadow(0 4px 18px rgba(0,0,0,.6)); }
-/* Slight overall transparency so background particles show through */
-body.revealed svg.dartboard { opacity:0.82; }
+/* 保持飞盘常态：不随信息圆盘开合改变透明度 */
+body.revealed svg.dartboard { opacity:0.9; transition:opacity .4s ease; }
 
 /* Static board sheen (animation disabled per user request) */
 svg.dartboard .board-sheen { mix-blend-mode: screen; }
@@ -262,7 +262,7 @@ body.revealed .ring { cursor:inherit !important; }
 .info-disc .disc.planet-venus   { --p-base:#b88230; --p-mid:#cfa548; --p-highlight:#f5deb0; --p-shadow:#2a1707; }
 .info-disc .disc.planet-jupiter { --p-base:#90552f; --p-mid:#b8804f; --p-highlight:#e8c99d; --p-shadow:#2c1407; }
 .info-disc .disc.planet-mercury { --p-base:#5a646d; --p-mid:#7f8b95; --p-highlight:#cfd5d9; --p-shadow:#0f1214; }
-.info-disc .disc.planet-mars    { --p-base:#873318; --p-mid:#c3502e; --p-highlight:#f2b79a; --p-shadow:#2c1109; }
+.info-disc .disc.planet-mars    { /* Lightened Mars palette: lift mids/highlights, slightly soften shadow */ --p-base:#9a3d22; --p-mid:#d5643a; --p-highlight:#f6c6b0; --p-shadow:#38160d; }
 .info-disc .disc.planet-saturn  { --p-base:#8e7a57; --p-mid:#c3ac7e; --p-highlight:#ecdfc6; --p-shadow:#261f14; }
 .info-disc .disc.planet-moon    { --p-base:#5b6168; --p-mid:#818990; --p-highlight:#d8dde1; --p-shadow:#16191c; }
 .info-disc .disc.planet-earth   { --p-base:#0b4d74; --p-mid:#2084c1; --p-highlight:#92defc; --p-shadow:#021320; }
@@ -334,7 +334,9 @@ body.revealed .ring { cursor:inherit !important; }
 .info-disc[data-visible="true"] .disc { pointer-events:auto; }
 .info-disc[data-visible="true"] .disc { opacity:1; transform:translateY(var(--disc-shift,0)) translate(var(--parallax-x,0), var(--parallax-y,0)) scale(1); filter:blur(0); }
 /* 关闭动画：添加 closing 类时执行 scale & fade */
-.info-disc .disc.closing { opacity:0; transform:translateY(var(--disc-shift,0)) translate(var(--parallax-x,0), var(--parallax-y,0)) scale(.85); filter:blur(12px); transition:opacity .45s cubic-bezier(.55,.1,.25,1), transform .55s cubic-bezier(.55,.1,.25,1), filter .55s cubic-bezier(.55,.1,.25,1); }
+/* 关闭拆分为两个阶段：.closing 预备 (仅标记，去掉昂贵的背景/阴影过渡) + .closing-active 执行轻量属性过渡 */
+.info-disc .disc.closing { will-change:opacity, transform, filter; /* 去掉背景/box-shadow 的 transition 以避免重绘抖动 */ }
+.info-disc .disc.closing-active { opacity:0; transform:translateY(var(--disc-shift,0)) translate(var(--parallax-x,0), var(--parallax-y,0)) scale(.85); filter:blur(12px); transition:opacity .42s cubic-bezier(.55,.1,.25,1), transform .5s cubic-bezier(.55,.1,.25,1), filter .5s cubic-bezier(.55,.1,.25,1); }
 /* 避免和首开 data-pop 动画冲突：关闭时不再显示弹入动画 */
 /* 弹入动画去除放大回缩的过冲，只做平滑从 0.6 -> 1 的出现 */
 @keyframes disc-pop-in { 0% { transform:translateY(var(--disc-shift,0)) translate(var(--parallax-x,0), var(--parallax-y,0)) scale(.6); filter:blur(10px) brightness(.7); opacity:0; }
@@ -344,8 +346,7 @@ body.revealed .ring { cursor:inherit !important; }
 /* 动画过程中启用 will-change 提前分配合成层，减少首帧抖动 */
 .info-disc .disc.animating { will-change:transform, opacity; }
 .info-disc[data-visible="true"] { pointer-events:auto; }
-.disc-open .dartboard-wrapper svg.dartboard { transition:filter .5s ease, opacity .5s ease; }
-.disc-open .dartboard-wrapper svg.dartboard { filter:opacity(.52) drop-shadow(0 0 18px color-mix(in srgb,var(--disc-accent) 28%, transparent)); opacity:.88; transition:filter .6s ease, opacity .6s ease; }
+/* 旧的 disc-open 下压暗逻辑替换为简单淡出（见上方 body.disc-open svg.dartboard） */
 .info-disc h2 { font:600 clamp(1.05rem,2.1vmin,1.45rem)/1.15 Inter,system-ui,sans-serif; letter-spacing:.05em; margin:0 0 .9rem; text-align:center; color:#fff; outline:none; position:relative; }
 .info-disc h2:focus { outline:none; }
 /* 无内容状态（外环点击后清空文字）减少多余顶部空白 */
