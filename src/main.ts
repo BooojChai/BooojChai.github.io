@@ -149,6 +149,27 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
     const planet = ringPlanetClass[anchorRing];
     if (planet) discElForAccent.classList.add(`planet-${planet}`);
   }
+  // Auto-hover corresponding social icon for certain module titles
+  try {
+    const socialBar = document.querySelector('.global-social-bar');
+    if (socialBar) {
+      // Clear previous auto hovers
+      socialBar.querySelectorAll('.s-icon.is-auto-hover').forEach(el=>el.classList.remove('is-auto-hover'));
+      const title = mod?.title || '';
+      let selector: string | null = null;
+      if (title === 'Career') selector = '.s-icon.li'; // LinkedIn
+      else if (title === 'Podcast') selector = '.s-icon.pc'; // Podcast icon
+      else if (title === 'Music Life') selector = '.s-icon.bd'; // Band icon
+      if (selector) {
+        const target = socialBar.querySelector(selector);
+        if (target) {
+          target.classList.add('is-auto-hover');
+          // Small breathing effect reapply animation (optional): force reflow to restart transition if re-opened
+          void (target as HTMLElement).offsetWidth;
+        }
+      }
+    }
+  } catch { /* noop */ }
   const discEl = infoDisc.querySelector('.disc') as HTMLElement | null;
   if (discEl) {
     discEl.classList.add('animating');
@@ -285,6 +306,11 @@ function hideCard() {
         discEl.classList.remove('closing','closing-active');
         delete infoDisc.dataset.visible;
         document.body.classList.remove('disc-open');
+        // Clear any auto-hovered social icon when closing
+        try {
+          const socialBar = document.querySelector('.global-social-bar');
+          socialBar?.querySelectorAll('.s-icon.is-auto-hover').forEach(el=>el.classList.remove('is-auto-hover'));
+        } catch { /* noop */ }
         const discEl2 = infoDisc.querySelector('.disc') as HTMLElement | null;
         if (discEl2) discEl2.style.removeProperty('--disc-accent');
         if (discEl2) discEl2.className = discEl2.className.replace(/\bplanet-[a-z]+\b/g,'').trim();
@@ -297,6 +323,11 @@ function hideCard() {
   } else {
     delete infoDisc.dataset.visible;
     document.body.classList.remove('disc-open');
+    // Clear any auto-hovered social icon (non-animated close)
+    try {
+      const socialBar = document.querySelector('.global-social-bar');
+      socialBar?.querySelectorAll('.s-icon.is-auto-hover').forEach(el=>el.classList.remove('is-auto-hover'));
+    } catch { /* noop */ }
     const discEl2 = infoDisc.querySelector('.disc') as HTMLElement | null;
     if (discEl2) discEl2.style.removeProperty('--disc-accent');
     if (discEl2) discEl2.className = discEl2.className.replace(/\bplanet-[a-z]+\b/g,'').trim();

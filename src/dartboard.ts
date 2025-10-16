@@ -139,14 +139,18 @@ export class Dartboard {
     // Define labels for 7 rings (0 center to 6 outer)
     const labels = [
       'CORE · IDENTITY · PURPOSE · ',
-      // Ring 1: Growing-related
+      // Ring 1 (index 1): Growing
       'GROWING · LEARNING · EVOLVING · ',
-      // Ring 2: Career-related
+      // Ring 2 (index 2): Career
       'CAREER · JOURNEY · EXPERIENCE · ',
-      'CREATIVITY · DESIGN · AESTHETICS · ',
-      'SYSTEMS · ARCHITECTURE · STRUCTURE · ',
+      // Ring 3 (index 3): Music related (requested)
+      'MELODY · RHYTHM · HARMONY · MUSIC · GROOVE · ',
+      // Ring 4 (index 4): Sounds related (requested)
+      'SOUND · VIBRATION · FREQUENCY · RESONANCE · ECHO · ',
+      // Ring 5 (index 5): Execution remains
       'EXECUTION · SHIPPING · IMPACT · ',
-      'REFLECTION · ADAPTATION · BALANCE · '
+      // Ring 6 (index 6): Moon / Light related (requested)
+      'MOON · LIGHT · LUNAR · GLOW · NIGHT · RADIANCE · '
     ];
 
     // Recompute radii so that core is a smaller fixed fraction and remaining rings share equal thickness.
