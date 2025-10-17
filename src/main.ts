@@ -89,6 +89,18 @@ infoDisc.setAttribute('aria-modal','true');
 infoDisc.innerHTML = '<div class="disc"><h2></h2><div class="body"></div></div>';
 document.body.appendChild(infoDisc);
 
+// --- Disc reveal close lock ---
+// 需求：圆盘弹入动画 + 文本段落全部渐显完成之前禁止关闭。
+let discRevealLock = false;
+let discRevealTimer: number | null = null;
+const DISC_POP_IN_MS = 650; // 与 CSS 弹入动画时长保持一致
+function armDiscLock(duration:number) {
+  if (discRevealTimer) { clearTimeout(discRevealTimer); discRevealTimer = null; }
+  discRevealLock = true;
+  discRevealTimer = window.setTimeout(() => { discRevealLock = false; discRevealTimer = null; }, Math.max(0,duration));
+}
+function isDiscCloseAllowed() { return !discRevealLock; }
+
 function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number }) {
   const mod = MODULES.find(m=>m.id===moduleId);
   if (!mod) return;
@@ -180,6 +192,24 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
   suppressClickOnce();
   setTimeout(trapFocus, 30);
   injectMiniGameIfNeeded(moduleId);
+
+  // 计算关闭锁时长（文本段落动画 + 弹入动画取最大值）
+  queueMicrotask(() => {
+    let lockMs = DISC_POP_IN_MS;
+    try {
+      const bio = infoDisc.querySelector('.bio.fade-paras') as HTMLElement | null;
+      if (bio) {
+        const startDelay = parseInt(bio.dataset.revealStartDelay || '420');
+        const baseDelay = parseInt(bio.dataset.revealBaseDelay || '300');
+        const count = parseInt(bio.dataset.revealCount || '0');
+        if (count > 0) {
+          const lastParaIn = startDelay + baseDelay * Math.max(0, count - 1) + 100; // +100ms 缓冲
+          lockMs = Math.max(lockMs, lastParaIn);
+        }
+      }
+    } catch { /* ignore */ }
+    armDiscLock(lockMs);
+  });
 }
 
 // Transform bullseye preformatted bio into <p> paragraphs and reveal them sequentially
@@ -257,6 +287,10 @@ function setupBullseyeParagraphFade(bodyEl: Element) {
   // Staggered fade-in (first time)
     const baseDelay = 300; // ms spacing between paragraphs (slower)
     const startDelay = 420; // ms after disc pop-in begins (slower)
+  // 写入数据供 showCard 计算锁时长
+  bio.dataset.revealBaseDelay = String(baseDelay);
+  bio.dataset.revealStartDelay = String(startDelay);
+  bio.dataset.revealCount = String(paras.length);
     // Explicit initial states (in case CSS was overridden earlier)
     paras.forEach(p => {
       p.classList.remove('is-in');
@@ -285,6 +319,7 @@ function setupBullseyeParagraphFade(bodyEl: Element) {
 
 function hideCard() {
   if(!infoDisc.dataset.visible) return;
+  if (!isDiscCloseAllowed()) { return; }
   const discEl = infoDisc.querySelector('.disc') as HTMLElement | null;
   if (discEl && !discEl.classList.contains('closing')) {
     discEl.classList.remove('animating');
