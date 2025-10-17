@@ -23,7 +23,7 @@ I host a little known podcast, meaningful sounds energize me.
 
 Software engineering is what I excel at and rely on for a living. Along this path, I've worked for one of the best electronics and software companies on this planet.
 
-I chase and act, dream and love.
+I run and act, dream and love.
 
 Welcome.
 
@@ -48,12 +48,12 @@ However, true growth is always ongoing.
   <div class="bio bio-pre">
 <pre>
 
-My journey began with an mediocre small company.
+My journey began with an mediocre company.
 Thankfully, that was just the first step.
 
 I was fortunate to join Samsung, developing the Galaxy Watch, and later worked on Android system development at OPPO.
 
-Currently, I work at Microsoft, delivering Bing (https://play.google.com/store/apps/details?id=com.microsoft.bing) and Copilot (https://play.google.com/store/search?q=Copilot&c=apps).
+Now, I work at Microsoft, delivering Bing (https://play.google.com/store/apps/details?id=com.microsoft.bing) and Copilot (https://play.google.com/store/search?q=Copilot&c=apps).
 
 I'm not a geek or a researcher, but I believe in the value that technology brings to peoples.
 
@@ -81,8 +81,8 @@ But if life gives me a poison, music is my antidote.
   <div class="bio bio-pre">
 <pre>
 
-During the period of COVID-19 infection,
-I began to listen to podcasts because my body was unable to support other activities.
+During the period of COVID-19,
+I began to listen to podcasts.
 
 I gradually realized that I like sound over images,
 and felt excited for interesting long content.

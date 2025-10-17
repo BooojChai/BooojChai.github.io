@@ -122,33 +122,25 @@ function showCard(moduleId:number, anchorRing:number, at?: { x:number; y:number 
     body.innerHTML = '';
     infoDisc.classList.add('empty');
   }
-  // Add body class for styling and mark visible
+  // Pre-set planet accent & class BEFORE marking visible to avoid legacy blue flash if user closes immediately
+  const discElForAccent = infoDisc.querySelector('.disc') as HTMLElement | null;
+  if (discElForAccent) {
+    const ringPlanetAccent: Record<number,string> = {
+      0: '#58b2ff', 1: '#e3c15d', 2: '#d49b61', 3: '#c3ccd4', 4: '#ef7858', 5: '#e1d4b2', 6: '#f0f3f5'
+    };
+    const accent = ringPlanetAccent[anchorRing] || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
+    discElForAccent.style.setProperty('--disc-accent', accent);
+    const ringPlanetClass: Record<number,string> = { 0:'earth',1:'venus',2:'jupiter',3:'mercury',4:'mars',5:'saturn',6:'moon' };
+    discElForAccent.className = discElForAccent.className.replace(/\bplanet-[a-z]+\b/g,'').trim();
+    const planet = ringPlanetClass[anchorRing];
+    if (planet) discElForAccent.classList.add(`planet-${planet}`);
+    // Mark initialized so neutral fallback removed
+    discElForAccent.setAttribute('data-initialized','1');
+  }
   adjustDiscShift();
   document.body.classList.add('disc-open');
   infoDisc.dataset.visible = 'true';
   // 动态强调色：仅基于 ring 序号映射行星主题 (不改变环本身颜色)
-  const ringPlanetAccent: Record<number,string> = {
-    0: '#58b2ff', // Earth (center disc)
-    1: '#e3c15d', // Venus
-    2: '#d49b61', // Jupiter
-    3: '#c3ccd4', // Mercury
-  4: '#ef7858', // Mars (lightened)
-    5: '#e1d4b2', // Saturn
-    6: '#f0f3f5'  // Moon
-  };
-  const accent = ringPlanetAccent[anchorRing] || getComputedStyle(document.documentElement).getPropertyValue('--accent').trim();
-  const discElForAccent = infoDisc.querySelector('.disc') as HTMLElement | null;
-  if (discElForAccent) discElForAccent.style.setProperty('--disc-accent', accent);
-  // Planet class mapping for full background theme
-  const ringPlanetClass: Record<number,string> = {
-    0:'earth',1:'venus',2:'jupiter',3:'mercury',4:'mars',5:'saturn',6:'moon'
-  };
-  if (discElForAccent) {
-    // remove previous planet-* classes
-    discElForAccent.className = discElForAccent.className.replace(/\bplanet-[a-z]+\b/g,'').trim();
-    const planet = ringPlanetClass[anchorRing];
-    if (planet) discElForAccent.classList.add(`planet-${planet}`);
-  }
   // Auto-hover corresponding social icon for certain module titles
   try {
     const socialBar = document.querySelector('.global-social-bar');

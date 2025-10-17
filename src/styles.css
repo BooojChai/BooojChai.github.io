@@ -221,6 +221,7 @@ body.revealed .ring { cursor:inherit !important; }
   --disc-accent-soft: color-mix(in srgb, var(--disc-accent) 55%, transparent);
   --disc-accent-glow: color-mix(in srgb, var(--disc-accent) 80%, transparent);
   /* Earth theme layers: deep space backdrop, ocean depth gradient, day/night terminator, subtle cloud/highlight */
+  /* Start neutral (transparent) until .data-initialized to prevent blue flash on interrupted open */
   background:
     /* high cloud wisps */
     radial-gradient(circle at 58% 36%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0) 60%),
@@ -248,11 +249,14 @@ body.revealed .ring { cursor:inherit !important; }
 /* Refined planet themes: softer contrast, broader bands, subtle noise overlay */
 /* Simplified Planet System (Plan C): single base radial gradient + two concentric soft glows via ::before + noise via ::after */
 .info-disc .disc[class*="planet-"] { position:relative; background:var(--planet-bg, radial-gradient(circle at 40% 36%, #08314b 0%, #031b2e 100%)); transition:background 1s ease, box-shadow 1s ease; }
+/* Neutral pre-init state (used before content & planet class applied) */
+.info-disc .disc:not([data-initialized]) { background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.42) 0%, rgba(0,0,0,0.65) 85%) !important; box-shadow: none; }
 
-/* Subtle global spin highlight layer (gives slow rotation illusion) */
-/* 旋转速度可通过 --spin-dur 自定义（默认 18s，比原先 28s 更快） */
-.info-disc .disc[class*="planet-"] { --spin-dur:8s; }
+/* Subtle global spin highlight layer + texture spin */
+/* 旋转速度变量：--spin-dur（高光层） & --tex-spin-dur（纹理层） */
+.info-disc .disc[class*="planet-"] { --spin-dur:18s; --tex-spin-dur:42s; }
 .info-disc .disc[class*="planet-"]::before { animation:planetSpin var(--spin-dur) linear infinite; }
+@keyframes planetTexSpin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
 @keyframes planetSpin {
   0% { transform:rotate(0deg); }
   100% { transform:rotate(360deg); }
@@ -278,23 +282,39 @@ body.revealed .ring { cursor:inherit !important; }
 
 /* Soft highlight + rim darkening */
 .info-disc .disc[class*="planet-"]::before { content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
+  /* Softer light→mid→dark transition: introduce intermediate stops & broaden falloff */
   background:
-    radial-gradient(circle at 46% 38%, color-mix(in srgb,var(--p-highlight) 60%, transparent) 0%, rgba(255,255,255,0) 55%),
-    radial-gradient(circle at 50% 52%, rgba(0,0,0,0) 62%, color-mix(in srgb,var(--p-shadow) 70%, transparent) 88%);
-  mix-blend-mode:overlay; opacity:.55; filter:blur(.5px); transition:opacity .8s ease; }
+    radial-gradient(circle at 44% 36%,
+      color-mix(in srgb,var(--p-highlight) 65%, transparent) 0%,
+      color-mix(in srgb,var(--p-highlight) 40%, transparent) 14%,
+      color-mix(in srgb,var(--p-highlight) 22%, transparent) 26%,
+      color-mix(in srgb,var(--p-mid) 16%, transparent) 38%,
+      rgba(255,255,255,0.018) 54%,
+      rgba(255,255,255,0) 66%),
+    radial-gradient(circle at 54% 56%,
+      rgba(0,0,0,0) 56%,
+      color-mix(in srgb,var(--p-shadow) 28%, transparent) 74%,
+      color-mix(in srgb,var(--p-shadow) 55%, transparent) 86%,
+      rgba(0,0,0,0.055) 94%,
+      rgba(0,0,0,0) 100%),
+    /* Ultra-low alpha subtle broad ambient to ease outer rim */
+    radial-gradient(circle at 50% 50%, rgba(0,0,0,0) 58%, rgba(0,0,0,0.035) 88%, rgba(0,0,0,0.06) 100%);
+  mix-blend-mode:overlay; opacity:.55; filter:blur(.65px); transition:opacity .8s ease; }
 .info-disc .disc[class*="planet-"]:hover::before { opacity:.68; }
 
 /* Fine noise (denser & subtle) */
-.info-disc .disc[class*="planet-"]::after { content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
-  /* default light center offset more to upper-left to avoid title overlap */
+ .info-disc .disc[class*="planet-"]::after { content:""; position:absolute; inset:0; border-radius:50%; pointer-events:none;
   --lx:34%; --ly:30%;
-  /* 降低条纹：减小高频噪声不透明度并增大周期，避免肉眼明显环带 */
+  /* 去除分块：使用低频 radial + 轻微角向淡斑噪声 (伪旋转感)，取消分段 conic */
   background:
-    radial-gradient(circle at var(--lx) var(--ly), rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.08) 10%, rgba(255,255,255,0.035) 24%, rgba(255,255,255,0) 42%),
-    repeating-radial-gradient(circle at 32% 36%, rgba(255,255,255,0.008) 0 3px, rgba(255,255,255,0) 3px 11px),
-    repeating-linear-gradient(115deg, rgba(255,255,255,0.005) 0 5px, rgba(255,255,255,0) 5px 13px);
-  mix-blend-mode:overlay; opacity:.34; filter:blur(.55px) contrast(102%); transition:opacity .4s ease, background-position .25s ease; }
-.info-disc .disc[class*="planet-"]:hover::after { opacity:.55; }
+    radial-gradient(circle at var(--lx) var(--ly), rgba(255,255,255,0.10) 0%, rgba(255,255,255,0.05) 12%, rgba(255,255,255,0.02) 26%, rgba(255,255,255,0) 44%),
+    repeating-linear-gradient(28deg, rgba(255,255,255,0.005) 0 7px, rgba(255,255,255,0) 7px 18px),
+    radial-gradient(circle at 58% 54%, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0) 60%),
+    repeating-radial-gradient(circle at 32% 36%, rgba(255,255,255,0.0045) 0 3px, rgba(255,255,255,0) 3px 11px);
+  mix-blend-mode:overlay; opacity:.22; filter:blur(.5px) contrast(101%);
+  transition:opacity .4s ease;
+  animation:planetTexSpin var(--tex-spin-dur) linear infinite; }
+.info-disc .disc[class*="planet-"]:hover::after { opacity:.36; }
 
 /* Specular highlight (独立镜面高光，支持惯性与增益) */
 .info-disc .disc[class*="planet-"] .specular { position:absolute; inset:0; border-radius:50%; pointer-events:none; mix-blend-mode:screen; --slx:34%; --sly:30%; --specular-gain:1; opacity:.82; filter:brightness(var(--specular-gain)) saturate(1.05);
