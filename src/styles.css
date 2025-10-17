@@ -450,8 +450,8 @@ body.revealed .ring { cursor:inherit !important; }
 .info-disc h2[data-title="Bullseye Hit"]::after { content:""; display:block; width:60%; max-width:480px; height:1px; margin:.95rem auto 1.25rem; background:linear-gradient(90deg, rgba(0,140,255,0) 0%, color-mix(in srgb,var(--disc-accent) 25%, transparent) 8%, color-mix(in srgb,var(--disc-accent) 70%, transparent) 50%, color-mix(in srgb,var(--disc-accent) 25%, transparent) 92%, rgba(0,140,255,0) 100%); box-shadow:0 0 12px -4px color-mix(in srgb,var(--disc-accent) 55%, transparent); position:relative; }
 .info-disc h2[data-title="Bullseye Hit"]::after { isolation:isolate; }
 
-/* Ring 1: Growing Up — apply same halo and separator spacing */
-.info-disc h2[data-title="Growing Up"] {
+/* Ring 1: Growth — apply same halo and separator spacing (renamed from Growing Up) */
+.info-disc h2[data-title="Growth"] {
   color:#ffffff; /* stronger contrast */
   letter-spacing:.06em;
   text-shadow:
@@ -459,7 +459,7 @@ body.revealed .ring { cursor:inherit !important; }
   0 0 4px var(--disc-accent-soft),
   0 0 12px var(--disc-accent-glow);
 }
-.info-disc h2[data-title="Growing Up"]::after {
+.info-disc h2[data-title="Growth"]::after {
   content:""; display:block; width:60%; max-width:480px; height:1px; margin:.95rem auto 1.25rem;
   background:linear-gradient(90deg, rgba(0,0,0,0) 0%, color-mix(in srgb,var(--disc-accent) 35%, transparent) 8%, color-mix(in srgb,var(--disc-accent) 85%, transparent) 50%, color-mix(in srgb,var(--disc-accent) 35%, transparent) 92%, rgba(0,0,0,0) 100%);
   box-shadow:0 0 14px -4px color-mix(in srgb,var(--disc-accent) 65%, transparent);
@@ -480,8 +480,8 @@ body.revealed .ring { cursor:inherit !important; }
   box-shadow:0 0 14px -4px color-mix(in srgb,var(--disc-accent) 65%, transparent);
   position:relative;
 }
-/* Ring 3: Music Life — similar separator with slightly different spacing */
-.info-disc h2[data-title="Music Life"] {
+/* Ring 3: Music — similar separator with slightly different spacing (renamed from Music Life) */
+.info-disc h2[data-title="Music"] {
   color:#ffffff;
   letter-spacing:.06em;
   text-shadow:
@@ -489,14 +489,14 @@ body.revealed .ring { cursor:inherit !important; }
   0 0 4px var(--disc-accent-soft),
   0 0 12px var(--disc-accent-glow);
 }
-.info-disc h2[data-title="Music Life"]::after {
+.info-disc h2[data-title="Music"]::after {
   content:""; display:block; width:60%; max-width:480px; height:1px; margin:.95rem auto 1.25rem;
   background:linear-gradient(90deg, rgba(0,0,0,0) 0%, color-mix(in srgb,var(--disc-accent) 35%, transparent) 8%, color-mix(in srgb,var(--disc-accent) 85%, transparent) 50%, color-mix(in srgb,var(--disc-accent) 35%, transparent) 92%, rgba(0,0,0,0) 100%);
   box-shadow:0 0 14px -4px color-mix(in srgb,var(--disc-accent) 65%, transparent);
   position:relative;
 }
-/* Ring 4: Podcast */
-.info-disc h2[data-title="Podcast"] {
+/* Ring 4: Sounds (renamed from Podcast) */
+.info-disc h2[data-title="Sounds"] {
   color:#ffffff;
   letter-spacing:.06em;
   text-shadow:
@@ -504,7 +504,7 @@ body.revealed .ring { cursor:inherit !important; }
   0 0 4px rgba(255,120,80,0.35),
   0 0 12px rgba(255,140,90,0.28);
 }
-.info-disc h2[data-title="Podcast"]::after {
+.info-disc h2[data-title="Sounds"]::after {
   content:""; display:block; width:60%; max-width:480px; height:1px; margin:.95rem auto 1.25rem;
   background:linear-gradient(90deg, rgba(0,0,0,0) 0%, color-mix(in srgb,var(--disc-accent) 35%, transparent) 8%, color-mix(in srgb,var(--disc-accent) 85%, transparent) 50%, color-mix(in srgb,var(--disc-accent) 35%, transparent) 92%, rgba(0,0,0,0) 100%);
   box-shadow:0 0 14px -4px color-mix(in srgb,var(--disc-accent) 65%, transparent);

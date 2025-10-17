@@ -30,7 +30,7 @@ Welcome.
 </pre>
     </div>
   `, links: [] },
-  { id: 1, key: 'growing', title: 'Growing Up', body: `
+  { id: 1, key: 'growing', title: 'Growth', body: `
   <div class="bio bio-pre">
 <pre>I'm from China.
 
@@ -60,7 +60,7 @@ I'm not a geek or a researcher, but I believe in the value that technology bring
 </pre>
     </div>
   `, links: [] },
-  { id: 3, key: 'music', title: 'Music Life', body: `
+  { id: 3, key: 'music', title: 'Music', body: `
   <div class="bio bio-pre">
 <pre>
 
@@ -77,7 +77,7 @@ But if life gives me a poison, music is my antidote.
 </pre>
     </div>
   `, links: [] },
-  { id: 4, key: 'podcast', title: 'Podcast', body: `
+  { id: 4, key: 'podcast', title: 'Sounds', body: `
   <div class="bio bio-pre">
 <pre>
 
